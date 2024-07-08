@@ -1,6 +1,6 @@
 #include "Shader.hpp"
 
-#include <gl/glew.h>
+#include <GL/glew.h>
 
 #include <fstream>
 #include <sstream>

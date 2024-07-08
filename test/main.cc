@@ -1,7 +1,6 @@
 #include "Header.hpp"
 #include "Shader.hpp"
 #include <GLFW/glfw3.h>
-#include <Windows.h>
 
 int imageWidth = 1600;
 int imageHeight = 900;
