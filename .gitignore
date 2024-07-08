@@ -1,4 +1,4 @@
 build/
 examples/build/
-CMakePresets.json
-CMakeUserPresets.json
+./CMakePresets.json
+./CMakeUserPresets.json
