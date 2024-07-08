@@ -1,0 +1,4 @@
+build/
+examples/build/
+CMakePresets.json
+CMakeUserPresets.json
