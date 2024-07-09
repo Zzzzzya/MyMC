@@ -16,3 +16,6 @@
    - Shader类 Shader
    - 纹理类 Texture
    - AABB
+
+## 一些说明
+1. res/ 下为model和music文件夹。model存放模型和纹理，按照模型的形状划分。
