@@ -9,6 +9,10 @@
 #include "Player.hpp"
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 using Camera::BACKWARD;
 using Camera::FORWARD;
 using Camera::LEFT;
@@ -64,6 +68,7 @@ class Scene {
     int InitShaders();
     int InitTextures();
     int InitMap();
+    int InitGUI();
 
     void ProcessKeyInput() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

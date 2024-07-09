@@ -34,6 +34,12 @@ void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
         cout << "Failed to init Meshes" << endl;
         glfwTerminate();
     }
+
+    auto ResInitGUI = InitGUI();
+    if (ResInitRender == -1) {
+        cout << "Failed to init GUI" << endl;
+        glfwTerminate();
+    }
 }
 
 void Scene::MainLoop() {
@@ -44,11 +50,49 @@ void Scene::MainLoop() {
         deltaTime = curTime - lastTime;
         lastTime = curTime;
 
-        /* ViewPort Set */
+        // 开始新的ImGui帧
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // 获取主视口
+        ImGuiViewport *viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize(viewport->Size);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGuiWindowFlags host_window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                             ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                             ImGuiWindowFlags_NoNavFocus;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+        ImGui::Begin("DockSpace Demo", NULL, host_window_flags);
+        ImGui::PopStyleVar(3);
+
+        // 创建DockSpace
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+
+        ImGui::End();
+
+        // 创建一个窗口
+        ImGui::Begin("Example Window");
+        ImGui::Text("This is an example window.");
+        // 创建一个无边框按钮
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+        if (ImGui::Button("No Border Button")) {
+            // 按钮点击事件
+        }
+        ImGui::PopStyleVar();
+        ImGui::End();
+
+        // 渲染ImGui
+        ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
-        if (display_h < 1)
-            display_h = 1;
         glViewport(0, 0, display_w, display_h);
 
         /* Main Render */
@@ -71,6 +115,9 @@ void Scene::MainLoop() {
                 }
             }
         }
+
+        /* ImGui Render */
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         // Poll and handle events
         glfwPollEvents();
@@ -145,5 +192,25 @@ int Scene::InitMap() {
                 Map[i][j][k]->translate = vec3(i * CubeSize, j * CubeSize, -k * CubeSize);
                 // Map[i][j][k]->scale = vec3(0.5f);
             }
+    return 0;
+}
+
+int Scene::InitGUI() {
+    // 初始化GUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+
+    // 启动Docking
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    // 设置GUI风格
+    ImGui::StyleColorsDark();
+
+    // 设置GUI渲染器
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     return 0;
 }
