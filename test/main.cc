@@ -1,13 +1,6 @@
-#include "Header.hpp"
-#include "Shader.hpp"
-#include <GLFW/glfw3.h>
+#include "Scene.hpp"
 
-int imageWidth = 1600;
-int imageHeight = 900;
-
-float curTime = 0.0f;
-float lastTime = 0.0f;
-float deltaTime = 0.0f;
+Scene scene;
 
 int main(int argc, char **argv) {
     // Setup GLFW
@@ -18,10 +11,10 @@ int main(int argc, char **argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window with GLFW
-    GLFWwindow *window = glfwCreateWindow(imageWidth, imageHeight, "MC", NULL, NULL);
-    if (window == NULL)
+    scene.window = glfwCreateWindow(scene.imageWidth, scene.imageHeight, "MC", NULL, NULL);
+    if (scene.window == NULL)
         return -1;
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(scene.window);
     glfwSwapInterval(1); // Enable vsync
 
     // GLEW Init
@@ -48,17 +41,22 @@ int main(int argc, char **argv) {
 
     // Shader
     Shader SingleColorShader("Nothing.vs", "SingleColor.fs");
+    auto CubeShader = make_shared<Shader>("MVP.vs", "Cube.fs");
+
+    // Model
+    GrassBlock::loadTextures();
+    GrassBlock grassBlock;
 
     /* Render Loop */
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(scene.window)) {
         /* Time Update */
-        curTime = glfwGetTime();
-        deltaTime = curTime - lastTime;
-        lastTime = curTime;
+        scene.curTime = glfwGetTime();
+        scene.deltaTime = scene.curTime - scene.lastTime;
+        scene.lastTime = scene.curTime;
 
         /* ViewPort Set */
         int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glfwGetFramebufferSize(scene.window, &display_w, &display_h);
         if (display_h < 1)
             display_h = 1;
         glViewport(0, 0, display_w, display_h);
@@ -68,19 +66,21 @@ int main(int argc, char **argv) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        SingleColorShader.use();
-        SingleColorShader.setVec3(
-            "color", vec3(cos(radians(curTime) * 100) * 0.5 + 0.5, sin(radians(curTime) * 100) * 0.5 + 0.5, 0.0f));
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
+        // MVPs
+        mat4 view = scene.player->camera.ViewMat();
+        mat4 projection =
+            glm::perspective(glm::radians(scene.player->camera.fov), (float)display_w / (float)display_h, 0.1f, 100.0f);
 
-        glfwSwapBuffers(window);
+        // Draw
+        CubeShader->setMVPS(glm::mat4(1.0f), view, projection);
+        grassBlock.Draw(CubeShader);
+
+        glfwSwapBuffers(scene.window);
         // Poll and handle events
         glfwPollEvents();
     }
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(scene.window);
     glfwTerminate();
 
     return 0;

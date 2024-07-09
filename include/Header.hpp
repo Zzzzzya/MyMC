@@ -23,7 +23,12 @@ using glm::radians;
 #include <cmath>
 #include <string>
 #include <memory>
+#include <vector>
+#include <iostream>
+using std::cout;
+using std::endl;
 using std::make_shared;
 using std::shared_ptr;
+using std::vector;
 
 #endif
