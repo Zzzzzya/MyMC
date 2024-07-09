@@ -16,8 +16,8 @@ void Camera::ProcessKeyBoard(Movement move, float deltaTime) {
     vec3 movVec;
     float movDis = deltaTime * moveSpeed;
     vec3 N = vec3(0.0f, 1.0f, 0.0f);
-    vec3 trueFront = front - dot(front, N) * N;
-    vec3 trueRight = cross(trueFront, N);
+    vec3 trueFront = GameMode_Survival ? front - dot(front, N) * N : front;
+    vec3 trueRight = GameMode_Survival ? cross(trueFront, N) : right;
     switch (move) {
     case FORWARD:
         movVec = trueFront * movDis;

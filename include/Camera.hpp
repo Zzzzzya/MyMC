@@ -28,6 +28,8 @@ class Camera {
         RIGHT
     };
 
+    bool GameMode_Survival = false;
+
   public:
     Camera(const vec3 &pos);
     mat4 ViewMat() const;

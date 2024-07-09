@@ -15,6 +15,7 @@ void Texture::loadTexture(const std::string &filename, const std::string &direct
     path = directory + filename;
 
     int width, height, nrComponents;
+    stbi_set_flip_vertically_on_load(true);
     auto data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
     if (!data) {
         std::clog << "ERROR::TEXTURE::LOAD TEXTURE FAILED ON PATH " << path << std::endl;
