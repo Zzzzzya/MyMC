@@ -6,6 +6,17 @@
 #include <sstream>
 #include <iostream>
 
+vector<shared_ptr<Shader>> Shader::DefaultShader = {};
+
+/* Shader 序号表请查阅 docs/Shader.md */
+void Shader::setUpDefaultShaders() {
+    DefaultShader.push_back(make_shared<Shader>("MVP.vs", "Cube.fs"));
+}
+
+shared_ptr<Shader> Shader::GetDefaultShader(int i) {
+    return DefaultShader[i];
+}
+
 Shader::Shader(const std::string &vertexName, const std::string &fragmentName, bool hasGeo, const std::string &geoName,
                const std::string &vertexDirectory, const std::string &fragmentDirectory,
                const std::string &geoDirectory) {

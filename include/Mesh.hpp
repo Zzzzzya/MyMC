@@ -7,8 +7,10 @@
 /* 顶点类 */
 struct Vertex {
     vec3 position;
-    vec3 normal;
     vec2 texCoords;
+
+    int faceID = 0;
+    int cubeID = 0;
 };
 
 struct Vertex2D {
@@ -18,43 +20,32 @@ struct Vertex2D {
 
 class Texture;
 class Shader;
-/* 网格 - 一套物体 */
-class Mesh {
-  public:
-    /*网格数据 --> 顶点(顶点位置 + 法线 + 纹理坐标) + 索引 + 纹理的集合 */
-    vector<Vertex> vertice;
-    unsigned int VAO, VBO;
-    vec3 translate = vec3(0.0f);
-    vec3 scale = vec3(1.0f);
-
-    Mesh(const vector<Vertex> &vertices);
-    virtual void Draw(shared_ptr<Shader> &Shader) = 0;
-    inline mat4 getModel() const {
-        return glm::translate(mat4(1.0f), translate) * glm::scale(mat4(1.0f), scale);
-    }
-
-  private:
-    void setupMesh();
-};
 
 /* --------------  基础形体类 ------------- */
 /* Cube */
-class Cube : public Mesh {
-  public:
-    Cube();
-    const static std::string CubeDir;
+struct Cube {
+    int CubeID = 0;
+    bool Exposed[6] = {false, false, false, false, false, false};
+    static unordered_map<int, std::pair<int, int>> CubeIdMap; // CubeID -> TextureID, ShaderID
+    int GetTextureID() const;
+    int GetShaderID() const;
 };
 
-/* ------------- 实际物体类 -------------- */
-/* ------ Cube类物体😍 ------ */
-class GrassBlock : public Cube {
+/* ------- Chunk -------- */
+class Chunk {
   public:
-    GrassBlock();
-    void Draw(shared_ptr<Shader> &Shader) override;
+    Chunk(const shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> &Map, vec3 position, vec3 size = vec3(64, 16, 64));
+    unsigned int VAO, VBO;
+    vec3 pos;
+    vec3 size;
+    shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> map;
+    vector<Vertex> vertices;
+    void GenerateMesh();
+    void setupBuffer();
+    void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
 
-    const static std::string GrassBlockDir;
-    static vector<Texture> textures; // Cube 的纹理,六个面 ： 顺序为 ： 右 左 上 下 前 后
-    static void loadTextures();
+  private:
+    void init();
 };
 
 #endif
