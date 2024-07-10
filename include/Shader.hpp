@@ -36,6 +36,11 @@ class Shader {
     // Uniforms
     void setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
 
+    // Shaders
+    static vector<shared_ptr<Shader>> DefaultShader;
+    static void setUpDefaultShaders();
+    static shared_ptr<Shader> GetDefaultShader(int i);
+
   private:
     void SetUpShader(const std::string &vertexName, const std::string &fragmentName, const std::string &vertexDirectory,
                      const std::string &fragmentDirectory);

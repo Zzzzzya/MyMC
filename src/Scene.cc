@@ -1,81 +1,71 @@
 #include "Scene.hpp"
 
 Scene::Scene() {
+    int a;
 }
 
 void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
                       void (*scrollCallback)(GLFWwindow *, double, double)) {
+    std::clog << " Init Scene" << std::endl;
     auto ResInitWindow = InitWindow(cursorPosCallback, scrollCallback);
     if (ResInitWindow == -1) {
         cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
     }
 
+    std::clog << " Init Render" << std::endl;
     auto ResInitRender = InitRender();
     if (ResInitRender == -1) {
         cout << "Failed to init render" << endl;
         glfwTerminate();
     }
 
+    std::clog << " Init Shaders" << std::endl;
     auto ResInitShaders = InitShaders();
     if (ResInitRender == -1) {
         cout << "Failed to init Shaders" << endl;
         glfwTerminate();
     }
 
+    std::clog << " Init Textures" << std::endl;
     auto ResInitTextures = InitTextures();
     if (ResInitRender == -1) {
         cout << "Failed to init Textures" << endl;
         glfwTerminate();
     }
 
+    std::clog << " Init Map" << std::endl;
     auto ResInitMeshes = InitMap();
     if (ResInitRender == -1) {
         cout << "Failed to init Meshes" << endl;
         glfwTerminate();
     }
+
+    std::clog << " Init GUI" << std::endl;
+    auto ResInitGUI = InitGUI();
+    if (ResInitRender == -1) {
+        cout << "Failed to init GUI" << endl;
+        glfwTerminate();
+    }
 }
 
+/* 主渲染循环 */
 void Scene::MainLoop() {
     /* Render Loop */
     while (!glfwWindowShouldClose(window)) {
-        /* Time Update */
-        curTime = glfwGetTime();
-        deltaTime = curTime - lastTime;
-        lastTime = curTime;
+        /* 更新时间 */
+        UpdateTimeAndFPS();
 
-        /* ViewPort Set */
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        if (display_h < 1)
-            display_h = 1;
-        glViewport(0, 0, display_w, display_h);
+        app.PrepareRender();
 
-        /* Main Render */
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        /* 渲染 */
+        if (app.state == App::State::RUN)
+            MainRender();
 
-        // MVPs
-        mat4 view = player->camera.ViewMat();
-        mat4 projection =
-            glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 100.0f);
+        app.ImGuiRender();
 
-        // Draw
-        for (int i = 0; i < mapX; i++) {
-            for (int j = 0; j < mapY; j++) {
-                for (int k = 0; k < mapZ; k++) {
-                    Shaders[0]->use();
-                    Shaders[0]->setMVPS(Map[i][j][k]->getModel(), view, projection);
-                    Map[i][j][k]->Draw(Shaders[0]);
-                }
-            }
-        }
-        glfwSwapBuffers(window);
-        // Poll and handle events
-        glfwPollEvents();
-
-        ProcessKeyInput();
+        /* window 处理 */
+        ProcessWindow();
     }
 }
 
@@ -101,7 +91,7 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     glfwSetCursorPosCallback(window, cursorPosCallback);
     glfwSetScrollCallback(window, scrollCallback);
 
@@ -119,31 +109,162 @@ int Scene::InitRender() {
 }
 
 int Scene::InitShaders() {
-    Shaders.push_back(make_shared<Shader>("MVP.vs", "Cube.fs")); // 0 for Cube Texture Shader
+    Shader::setUpDefaultShaders();
     return 0;
 }
 
 int Scene::InitTextures() {
-    GrassBlock::loadTextures();
+    Texture::setUpDefaultTextures();
     return 0;
 }
 
 int Scene::InitMap() {
-    Map.resize(mapX);
-    for (auto &rol : Map) {
+    // 初始化地图
+    auto &map = *(this->Map);
+    map.resize(mapX);
+    for (auto &rol : map) {
         rol.resize(mapY);
-        for (auto &meshes : rol) {
-            meshes.resize(mapZ);
-            for (auto &mesh : meshes) {
-                mesh = make_shared<GrassBlock>();
+        for (auto &cubes : rol) {
+            cubes.resize(mapZ);
+            for (auto &cube : cubes) {
+                cube = make_shared<Cube>();
+                cube->CubeID = 0;
             }
         }
     }
+
+    for (auto &rol : map) {
+        for (auto &cubes : rol) {
+            for (auto &cube : cubes) {
+                cube->CubeID = 1;
+            }
+        }
+    }
+
+    int dx[] = {1, -1, 0, 0, 0, 0};
+    int dy[] = {0, 0, 1, -1, 0, 0};
+    int dz[] = {0, 0, 0, 0, -1, 1};
+
     for (int i = 0; i < mapX; i++)
         for (int j = 0; j < mapY; j++)
             for (int k = 0; k < mapZ; k++) {
-                Map[i][j][k]->translate = vec3(i * CubeSize, j * CubeSize, -k * CubeSize);
-                // Map[i][j][k]->scale = vec3(0.5f);
+                if (map[i][j][k]->CubeID == 0)
+                    continue;
+                for (int p = 0; p < 6; p++) {
+                    int nx = i + dx[p];
+                    int ny = j + dy[p];
+                    int nz = k + dz[p];
+                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ ||
+                        map[nx][ny][nz]->CubeID == 0) {
+                        map[i][j][k]->Exposed[p] = true;
+                    }
+                    else {
+                        map[i][j][k]->Exposed[p] = false;
+                    }
+                }
             }
+
+    // 初始化Chunk
+    Chunks.resize(1);
+    Chunks[0] = make_shared<Chunk>(Map, vec3(0.0f, 0.0f, 0.0f), ChunkSize);
+
     return 0;
+}
+
+int Scene::InitGUI() {
+    // 初始化GUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+
+    // 启动Docking
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    // 设置GUI风格
+    ImGui::StyleColorsDark();
+
+    // 设置GUI渲染器
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    return 0;
+}
+
+void Scene::UpdateTimeAndFPS() {
+    /* 时间和帧率的更新 */
+    curTime = glfwGetTime();
+    deltaTime = curTime - lastTime;
+    lastTime = curTime;
+    static int frameCount = 0;
+    static float timeCount = 0;
+    timeCount += deltaTime;
+    frameCount++;
+    if (timeCount >= 1.0f) {
+        fps = frameCount / timeCount;
+        frameCount = 0;
+        timeCount = 0;
+    }
+}
+
+void Scene::ProcessWindow() {
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+    ProcessKeyInput();
+}
+
+void Scene::MainRender() {
+    /* Main Render 真正渲染场景的地方 */
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // MVPs
+    mat4 view = player->camera.ViewMat();
+    mat4 projection =
+        glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 100.0f);
+
+    auto cubeShader = Shader::GetDefaultShader(0);
+    cubeShader->use();
+    cubeShader->setMat4("view", view);
+    cubeShader->setMat4("projection", projection);
+
+    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        cubeShader->setInt("tex[" + std::to_string(i) + "]", i);
+    }
+
+    for (int i = 0; i < Chunks.size(); i++) {
+        Chunks[i]->Draw(view, projection, CubeSize);
+    }
+}
+
+void Scene::ProcessKeyInput() {
+    {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            if (cursorInWindow) {
+                cout << "ESC Pressed" << endl;
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                cursorInWindow = false;
+                firstMouse = true;
+                app.state = App::State::WAITING;
+            }
+        }
+        if (!cursorInWindow)
+            return;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            player->camera.ProcessKeyBoard(FORWARD, deltaTime);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            player->camera.ProcessKeyBoard(BACKWARD, deltaTime);
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            player->camera.ProcessKeyBoard(LEFT, deltaTime);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            player->camera.ProcessKeyBoard(RIGHT, deltaTime);
+        }
+    };
 }

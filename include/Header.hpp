@@ -25,10 +25,12 @@ using glm::radians;
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
 using std::cout;
 using std::endl;
 using std::make_shared;
 using std::shared_ptr;
+using std::unordered_map;
 using std::vector;
 
 #endif

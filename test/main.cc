@@ -34,7 +34,7 @@ void ProcessCursorPos(GLFWwindow *window, double xpos, double ypos) {
 
     scene->player->camera.ProcessCursorPos(offsetx, offsety);
 };
-static void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset) {
+void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset) {
     if (!scene->cursorInWindow)
         return;
     scene->player->camera.ProcessScroll(yoffset);

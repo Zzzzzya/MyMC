@@ -4,6 +4,25 @@
 #endif
 #include "stb_image.h"
 
+static std::string path = "../res/Models/Cubes/";
+static vector<std::string> filename = {"/right.png", "/left.png", "/top.png", "/bottom.png", "/front.png", "/back.png"};
+vector<shared_ptr<Texture>> Texture::DefaultTexture = {};
+
+static void setUpDefaultTexturesHelper(const std::string &CubeName) {
+    for (int i = 0; i < 6; i++) {
+        Texture::DefaultTexture.push_back(make_shared<Texture>(filename[i], path + CubeName));
+    }
+}
+
+void Texture::setUpDefaultTextures() {
+    // 0
+    setUpDefaultTexturesHelper("GrassBlock");
+}
+
+shared_ptr<Texture> Texture::GetDefaultTexture(int i) {
+    return Texture::DefaultTexture[i];
+}
+
 Texture::Texture() {
 }
 

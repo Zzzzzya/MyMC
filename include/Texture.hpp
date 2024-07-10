@@ -18,6 +18,10 @@ class Texture {
     Texture(const std::string &filename, const std::string &directory = std::string("../res/textures/"));
     void setTexParam();
 
+    static vector<shared_ptr<Texture>> DefaultTexture;
+    static void setUpDefaultTextures();
+    static shared_ptr<Texture> GetDefaultTexture(int i);
+
   private:
     void loadTexture(const std::string &filename, const std::string &directory);
 };
