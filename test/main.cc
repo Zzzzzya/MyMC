@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "Log/Logger.hpp"
 
 auto scene = make_shared<Scene>();
 
@@ -7,6 +8,7 @@ void ProcessCursorPos(GLFWwindow *window, double xpos, double ypos);
 void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset);
 
 int main(int argc, char **argv) {
+    Loggers::init();
 
     scene->InitScene(ProcessCursorPos, ProcessScroll);
 

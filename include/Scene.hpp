@@ -7,6 +7,7 @@
 #include "Texture.hpp"
 #include "Mesh.hpp"
 #include "Player.hpp"
+#include "Log/Logger.hpp"
 #include <GLFW/glfw3.h>
 
 #include "Application.hpp"

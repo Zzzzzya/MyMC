@@ -23,8 +23,8 @@ std::vector<spdlog::sink_ptr> Loggers::createSinks(const std::string &log_file_n
 
 void Loggers::createLogger(const std::string &logger_name)
 {
-    std::string log_file_name = logger_name + "_log.txt";
-    auto sinks = Loggers::createSinks(log_file_name);
+    std::string log_file_name = logger_name + "_log.log";
+    auto sinks = Loggers::createSinks("../log/" + log_file_name);
 
     auto logger = std::make_shared<spdlog::logger>(logger_name, begin(sinks), end(sinks));
     logger->set_level(spdlog::level::debug);
@@ -52,8 +52,8 @@ void Loggers::init()
     }
     Loggers::global_level = level;
 
+    // 设置全局日志格式
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%^---%L---%$] [%s:%#] %v");
     spdlog::flush_every(std::chrono::seconds(1));
     spdlog::flush_on(spdlog::level::debug);
-
-    Loggers::createLogger("service");
 }

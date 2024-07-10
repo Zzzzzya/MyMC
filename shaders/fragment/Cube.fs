@@ -14,5 +14,6 @@ vec3 colors[CubeCount] = vec3[](vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0
 
 void main() {
 
-    FragColor = texture(tex[index], TexCoords);
+    // FragColor = texture(tex[index], TexCoords);
+    FragColor = vec4(colors[index], 1.0);
 }
