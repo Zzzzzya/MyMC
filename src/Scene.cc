@@ -6,45 +6,48 @@ Scene::Scene() {
 
 void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
                       void (*scrollCallback)(GLFWwindow *, double, double)) {
-    std::clog << " Init Scene" << std::endl;
+    // 获取日志系统
+    auto logger = Loggers::getLogger("Scene");
+
+    LOG_INFO(logger, "Init Scene");
     auto ResInitWindow = InitWindow(cursorPosCallback, scrollCallback);
     if (ResInitWindow == -1) {
-        cout << "Failed to create GLFW window" << endl;
+        LOG_ERROR(logger, "Failed to create GLFW window");
         glfwTerminate();
     }
 
-    std::clog << " Init Render" << std::endl;
+    LOG_INFO(logger, "Init Render");
     auto ResInitRender = InitRender();
     if (ResInitRender == -1) {
-        cout << "Failed to init render" << endl;
+        LOG_ERROR(logger, "Failed to init Render");
         glfwTerminate();
     }
 
-    std::clog << " Init Shaders" << std::endl;
+    LOG_INFO(logger, "Init Shaders");
     auto ResInitShaders = InitShaders();
     if (ResInitRender == -1) {
-        cout << "Failed to init Shaders" << endl;
+        LOG_ERROR(logger, "Failed to init Shaders");
         glfwTerminate();
     }
 
-    std::clog << " Init Textures" << std::endl;
+    LOG_INFO(logger, "Init Textures");
     auto ResInitTextures = InitTextures();
     if (ResInitRender == -1) {
-        cout << "Failed to init Textures" << endl;
+        LOG_ERROR(logger, "Failed to init Textures");
         glfwTerminate();
     }
 
-    std::clog << " Init Map" << std::endl;
+    LOG_INFO(logger, "Init Map");
     auto ResInitMeshes = InitMap();
     if (ResInitRender == -1) {
-        cout << "Failed to init Meshes" << endl;
+        LOG_ERROR(logger, "Failed to init Map");
         glfwTerminate();
     }
 
-    std::clog << " Init GUI" << std::endl;
+    LOG_INFO(logger, "Init GUI");
     auto ResInitGUI = InitGUI();
     if (ResInitRender == -1) {
-        cout << "Failed to init GUI" << endl;
+        LOG_ERROR(logger, "Failed to init GUI");
         glfwTerminate();
     }
 }
@@ -83,6 +86,8 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Create window with GLFW
     window = glfwCreateWindow(imageWidth, imageHeight, "MC", NULL, NULL);

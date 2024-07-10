@@ -12,6 +12,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 find_package(assimp CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -27,3 +28,4 @@ target_link_libraries(MyMC PRIVATE glm::glm)
 target_link_libraries(MyMC PRIVATE imgui::imgui)
 target_link_directories(MyMC PRIVATE ${Stb_INCLUDE_DIR})
 target_link_libraries(MyMC PRIVATE assimp::assimp)
+target_link_libraries(MyMC PRIVATE spdlog::spdlog)

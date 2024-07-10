@@ -4,3 +4,5 @@ CMakePresets.json
 CMakeUserPresets.json
 .vscode/
 .clang-format
+log/
+*.

@@ -13,6 +13,7 @@
         "docking-experimental" 
       ]
     },
-    "stb"
+    "stb",
+    "spdlog"
   ]
 }
