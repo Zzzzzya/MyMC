@@ -10,7 +10,7 @@ vector<shared_ptr<Shader>> Shader::DefaultShader = {};
 
 /* Shader 序号表请查阅 docs/Shader.md */
 void Shader::setUpDefaultShaders() {
-    DefaultShader.push_back(make_shared<Shader>("MVP.vs", "Cube.fs"));
+    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeMap.fs"));
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {
@@ -80,6 +80,9 @@ void Shader::setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::m
 // 如果没有几何着色器 只有顶点 + 片段
 void Shader::SetUpShader(const std::string &vertexName, const std::string &fragmentName,
                          const std::string &vertexDirectory, const std::string &fragmentDirectory) {
+    // 获取日志系统
+    auto logger = Loggers::getLogger("Shader");
+
     auto vertexPath = vertexDirectory + vertexName;
     auto fragmentPath = fragmentDirectory + fragmentName;
 
@@ -106,7 +109,7 @@ void Shader::SetUpShader(const std::string &vertexName, const std::string &fragm
         fragmentCode = fragmentStream.str();
     }
     catch (std::ifstream::failure &e) {
-        std::clog << "ERROR::SHADER::FILE NOT SUCCESSFULLY READ:" << e.what() << std::endl;
+        LOG_ERROR(logger, "ERROR::SHADER::FILE NOT SUCCESSFULLY READ: " + std::string(e.what()));
     }
 
     unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -124,8 +127,7 @@ void Shader::SetUpShader(const std::string &vertexName, const std::string &fragm
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        std::clog << "ERROR::COMPILE VERTEX SHADER" << std::endl;
-        std::clog << infoLog << std::endl;
+        LOG_ERROR(logger, "ERROR::COMPILE VERTEX SHADER : <NAME> " + vertexName + " \n<ERROR> " + std::string(infoLog));
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         return;
@@ -135,8 +137,8 @@ void Shader::SetUpShader(const std::string &vertexName, const std::string &fragm
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        std::clog << "ERROR::COMPILE FRAGMENT SHADER" << std::endl;
-        std::clog << infoLog << std::endl;
+        LOG_ERROR(logger,
+                  "ERROR::COMPILE FRAGMENT SHADER : <NAME> " + fragmentName + " \n<ERROR> " + std::string(infoLog));
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         return;
@@ -150,9 +152,8 @@ void Shader::SetUpShader(const std::string &vertexName, const std::string &fragm
     glGetProgramiv(pro, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(pro, 512, NULL, infoLog);
-        std::clog << "Shader: " << pro << std::endl;
-        std::clog << "ERROR::LINKING PROGRAM" << std::endl;
-        std::clog << infoLog << std::endl;
+        LOG_ERROR(logger, "ERROR::LINKING PROGRAM : <NAME> " + vertexName + "+" + fragmentName + " \n<ERROR> " +
+                              std::string(infoLog));
         glDeleteShader(vertex);
         glDeleteShader(fragment);
         glDeleteProgram(pro);

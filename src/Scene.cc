@@ -86,7 +86,7 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
+
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Create window with GLFW
@@ -119,7 +119,8 @@ int Scene::InitShaders() {
 }
 
 int Scene::InitTextures() {
-    Texture::setUpDefaultTextures();
+    // Texture::setUpDefaultTextures();
+    CubeMap::setUpDefaultCubeMaps();
     return 0;
 }
 
@@ -138,13 +139,10 @@ int Scene::InitMap() {
         }
     }
 
-    for (auto &rol : map) {
-        for (auto &cubes : rol) {
-            for (auto &cube : cubes) {
-                cube->CubeID = 1;
-            }
-        }
-    }
+    for (int i = 0; i < mapX / 2; i++)
+        for (int j = 0; j < mapY; j++)
+            for (int k = 0; k < mapZ; k++)
+                map[i][j][k]->CubeID = 1;
 
     int dx[] = {1, -1, 0, 0, 0, 0};
     int dy[] = {0, 0, 1, -1, 0, 0};
@@ -170,8 +168,17 @@ int Scene::InitMap() {
             }
 
     // 初始化Chunk
-    Chunks.resize(1);
-    Chunks[0] = make_shared<Chunk>(Map, vec3(0.0f, 0.0f, 0.0f), ChunkSize);
+    auto logger = Loggers::getLogger("Scene");
+    int ChunkX = mapX / ChunkSize.x;
+    int ChunkY = mapY / ChunkSize.y;
+    int ChunkZ = mapZ / ChunkSize.z;
+    Chunks.resize(ChunkX, vector<vector<shared_ptr<Chunk>>>(ChunkY, vector<shared_ptr<Chunk>>(ChunkZ)));
+    for (int i = 0; i < ChunkX; i++)
+        for (int j = 0; j < ChunkY; j++)
+            for (int k = 0; k < ChunkZ; k++) {
+                vec3 position = vec3(i, j, k);
+                Chunks[i][j][k] = make_shared<Chunk>(Map, position, ChunkSize);
+            }
 
     return 0;
 }
@@ -234,22 +241,23 @@ void Scene::MainRender() {
     cubeShader->setMat4("view", view);
     cubeShader->setMat4("projection", projection);
 
-    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
+    for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i]->id);
         cubeShader->setInt("tex[" + std::to_string(i) + "]", i);
     }
 
-    for (int i = 0; i < Chunks.size(); i++) {
-        Chunks[i]->Draw(view, projection, CubeSize);
-    }
+    for (auto &rol : Chunks)
+        for (auto &cubes : rol)
+            for (auto &chunk : cubes) {
+                chunk->Draw(view, projection, 2.0f);
+            }
 }
 
 void Scene::ProcessKeyInput() {
     {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             if (cursorInWindow) {
-                cout << "ESC Pressed" << endl;
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 cursorInWindow = false;
                 firstMouse = true;

@@ -11,6 +11,7 @@ struct Vertex {
 
     int faceID = 0;
     int cubeID = 0;
+    vec3 CubeMapTex = vec3(0.0f);
 };
 
 struct Vertex2D {
