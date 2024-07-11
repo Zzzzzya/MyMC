@@ -1,7 +1,7 @@
 #include "Scene.hpp"
 
 Scene::Scene() {
-    int a;
+    map = make_shared<Map>(vec3(mapX, mapY, mapZ));
 }
 
 void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
@@ -125,47 +125,7 @@ int Scene::InitTextures() {
 }
 
 int Scene::InitMap() {
-    // 初始化地图
-    auto &map = *(this->Map);
-    map.resize(mapX);
-    for (auto &rol : map) {
-        rol.resize(mapY);
-        for (auto &cubes : rol) {
-            cubes.resize(mapZ);
-            for (auto &cube : cubes) {
-                cube = make_shared<Cube>();
-                cube->CubeID = 0;
-            }
-        }
-    }
-
-    for (int i = 0; i < mapX / 2; i++)
-        for (int j = 0; j < mapY; j++)
-            for (int k = 0; k < mapZ; k++)
-                map[i][j][k]->CubeID = 1;
-
-    int dx[] = {1, -1, 0, 0, 0, 0};
-    int dy[] = {0, 0, 1, -1, 0, 0};
-    int dz[] = {0, 0, 0, 0, -1, 1};
-
-    for (int i = 0; i < mapX; i++)
-        for (int j = 0; j < mapY; j++)
-            for (int k = 0; k < mapZ; k++) {
-                if (map[i][j][k]->CubeID == 0)
-                    continue;
-                for (int p = 0; p < 6; p++) {
-                    int nx = i + dx[p];
-                    int ny = j + dy[p];
-                    int nz = k + dz[p];
-                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ ||
-                        map[nx][ny][nz]->CubeID == 0) {
-                        map[i][j][k]->Exposed[p] = true;
-                    }
-                    else {
-                        map[i][j][k]->Exposed[p] = false;
-                    }
-                }
-            }
+    map->InitMap();
 
     // 初始化Chunk
     auto logger = Loggers::getLogger("Scene");
@@ -177,7 +137,7 @@ int Scene::InitMap() {
         for (int j = 0; j < ChunkY; j++)
             for (int k = 0; k < ChunkZ; k++) {
                 vec3 position = vec3(i, j, k);
-                Chunks[i][j][k] = make_shared<Chunk>(Map, position, ChunkSize);
+                Chunks[i][j][k] = make_shared<Chunk>(map, position, ChunkSize);
             }
 
     return 0;
@@ -234,7 +194,7 @@ void Scene::MainRender() {
     // MVPs
     mat4 view = player->camera.ViewMat();
     mat4 projection =
-        glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 100.0f);
+        glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 1000.0f);
 
     auto cubeShader = Shader::GetDefaultShader(0);
     cubeShader->use();
