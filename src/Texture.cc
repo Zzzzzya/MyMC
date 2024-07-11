@@ -6,8 +6,10 @@
 
 static std::string path = "../res/Models/Cubes/";
 static vector<std::string> filename = {"/right.png", "/left.png", "/top.png", "/bottom.png", "/front.png", "/back.png"};
+// static vector<std::string> filename = {"/top.png", "/top.png", "/top.png", "/top.png", "/top.png", "/top.png"};
 vector<shared_ptr<Texture>> Texture::DefaultTexture = {};
 
+/* Default Textures */
 static void setUpDefaultTexturesHelper(const std::string &CubeName) {
     for (int i = 0; i < 6; i++) {
         Texture::DefaultTexture.push_back(make_shared<Texture>(filename[i], path + CubeName));
@@ -21,6 +23,19 @@ void Texture::setUpDefaultTextures() {
 
 shared_ptr<Texture> Texture::GetDefaultTexture(int i) {
     return Texture::DefaultTexture[i];
+}
+
+/* Default CubeMaps */
+vector<shared_ptr<CubeMap>> CubeMap::DefaultCubeMaps = {};
+static void setUpDefaultCubeMapsHelper(const std::string &CubeName) {
+    CubeMap::DefaultCubeMaps.push_back(make_shared<CubeMap>(filename, path + CubeName));
+}
+void CubeMap::setUpDefaultCubeMaps() {
+    // 0
+    setUpDefaultCubeMapsHelper("GrassBlock");
+}
+shared_ptr<CubeMap> CubeMap::GetDefaultCubeMap(int i) {
+    return CubeMap::DefaultCubeMaps[i];
 }
 
 Texture::Texture() {
@@ -75,24 +90,24 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
 
     int width, height, nrChannels;
     for (unsigned int i = 0; i < faces.size(); i++) {
-        unsigned char *data =
-            stbi_load(("../res/textures/skybox/" + faces[i]).c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load((directory + faces[i]).c_str(), &width, &height, &nrChannels, 0);
+        GLenum format = (nrChannels == 1) ? GL_RED : (nrChannels == 3 ? GL_RGB : GL_RGBA);
         if (data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
                          data);
             stbi_image_free(data);
         }
         else {
-            LOG_ERROR(logger,
-                      std::string("Cubemap texture failed to load at path: ") + "../res/textures/skybox/" + faces[i]);
+            LOG_ERROR(logger, std::string("Cubemap texture failed to load at path: ") + directory + faces[i]);
             stbi_image_free(data);
         }
     }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     id = textureID;
 }

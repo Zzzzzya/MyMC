@@ -119,7 +119,8 @@ int Scene::InitShaders() {
 }
 
 int Scene::InitTextures() {
-    Texture::setUpDefaultTextures();
+    // Texture::setUpDefaultTextures();
+    CubeMap::setUpDefaultCubeMaps();
     return 0;
 }
 
@@ -240,16 +241,17 @@ void Scene::MainRender() {
     cubeShader->setMat4("view", view);
     cubeShader->setMat4("projection", projection);
 
-    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
+    for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i]->id);
         cubeShader->setInt("tex[" + std::to_string(i) + "]", i);
     }
 
     for (auto &rol : Chunks)
         for (auto &cubes : rol)
-            for (auto &chunk : cubes)
+            for (auto &chunk : cubes) {
                 chunk->Draw(view, projection, 2.0f);
+            }
 }
 
 void Scene::ProcessKeyInput() {

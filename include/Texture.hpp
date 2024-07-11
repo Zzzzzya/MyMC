@@ -32,6 +32,10 @@ class CubeMap {
 
     CubeMap(const std::vector<std::string> &paths, const std::string &directory = std::string("../res/textures/"));
 
+    static vector<shared_ptr<CubeMap>> DefaultCubeMaps;
+    static void setUpDefaultCubeMaps();
+    static shared_ptr<CubeMap> GetDefaultCubeMap(int i);
+
   private:
     void loadCubeMap(const std::vector<std::string> &paths, const std::string &directory);
 };

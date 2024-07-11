@@ -78,6 +78,7 @@ void Chunk::GenerateMesh() {
                     if (cube->Exposed[p]) {
                         for (int q = 0; q < 6; q++) {
                             Vertex vertex = CubeVertice[p * 6 + q];
+                            vertex.CubeMapTex = vertex.position - vec3(0.0f);
                             vertex.position += WorldPos + vec3(i, j, -k) * 2.0f;
                             vertex.cubeID = cube->CubeID;
                             vertex.faceID = p;
@@ -103,6 +104,8 @@ void Chunk::setupBuffer() {
     glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
     glEnableVertexAttribArray(3);
     glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
