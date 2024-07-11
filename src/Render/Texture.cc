@@ -33,6 +33,18 @@ static void setUpDefaultCubeMapsHelper(const std::string &CubeName) {
 void CubeMap::setUpDefaultCubeMaps() {
     // 0
     setUpDefaultCubeMapsHelper("GrassBlock");
+    // 1
+    setUpDefaultCubeMapsHelper("DirtBlock");
+    // 2
+    setUpDefaultCubeMapsHelper("BedRock");
+    // 3
+    setUpDefaultCubeMapsHelper("Stone");
+    // 4
+    setUpDefaultCubeMapsHelper("Wood");
+    // 5
+    setUpDefaultCubeMapsHelper("Leaves");
+    // 6
+    setUpDefaultCubeMapsHelper("Diamond");
 }
 shared_ptr<CubeMap> CubeMap::GetDefaultCubeMap(int i) {
     return CubeMap::DefaultCubeMaps[i];

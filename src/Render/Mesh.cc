@@ -1,6 +1,7 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include "Map.hpp"
 
 /* Cube */
 /* ID映射 CubeID -> {TextureID, ShaderID} */
@@ -59,8 +60,7 @@ static vector<Vertex> CubeVertice = {
     {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
 };
 
-Chunk::Chunk(const shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> &Map, vec3 position, vec3 size)
-    : map(Map), pos(position), size(size) {
+Chunk::Chunk(const shared_ptr<Map> &Map, vec3 position, vec3 size) : map(Map), pos(position), size(size) {
     init();
 }
 
@@ -68,10 +68,12 @@ void Chunk::GenerateMesh() {
     auto logger = Loggers::getLogger("Chunk");
     vec3 WorldPos = pos * size * 2.0f;
     WorldPos.z = -WorldPos.z;
+
+    auto mapMap = map->GetMap();
     for (int i = 0; i < size.x; i++)
         for (int j = 0; j < size.y; j++)
             for (int k = 0; k < size.z; k++) {
-                auto &cube = (*map)[i + pos.x * size.x][j + pos.y * size.y][k + pos.z * size.z];
+                auto &cube = (*mapMap)[i + pos.x * size.x][j + pos.y * size.y][k + pos.z * size.z];
                 if (cube == nullptr || cube->CubeID == 0)
                     continue;
                 for (int p = 0; p < 6; p++) {

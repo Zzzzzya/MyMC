@@ -50,4 +50,5 @@ class Texture_HDR {
   private:
     void loadHDR(const std::string &paths, const std::string &directory);
 };
+
 #endif
