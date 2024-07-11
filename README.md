@@ -3,3 +3,7 @@
 
 ## 环境搭建
 参考[vcpkg搭建文档](docs/vcpkg.md)
+
+## Tips
+1. 请确保你的运行目录在build下  Please ensure your working directory is under build.
+   ![img](./images/docs/zya/buildPath.png)
