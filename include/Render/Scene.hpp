@@ -46,7 +46,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     GLFWwindow *window = nullptr;
 
     /* 玩家 */
-    shared_ptr<Player> player = make_shared<Player>(vec3(0.0f, 50.0f, 0.0f));
+    shared_ptr<Player> player = make_shared<Player>(vec3(0.0f, 100.0f, 0.0f));
 
     /* 地图 */
     int mapX = 20 * 10;
