@@ -7,7 +7,7 @@
 #include "Texture.hpp"
 #include "Mesh.hpp"
 #include "Player.hpp"
-#include "Log/Logger.hpp"
+
 #include <GLFW/glfw3.h>
 
 #include "Application.hpp"
@@ -48,13 +48,13 @@ class Scene : public std::enable_shared_from_this<Scene> {
     shared_ptr<Player> player = make_shared<Player>(vec3(0.0f, 0.0f, 5.0f));
 
     /* 地图 */
-    int mapX = 20;
+    int mapX = 20 * 10;
     int mapY = 20;
-    int mapZ = 20;
+    int mapZ = 20 * 10;
     vec3 ChunkSize = vec3(20, 20, 20);
     int CubeSize = 2.0f;
     shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> Map = make_shared<vector<vector<vector<shared_ptr<Cube>>>>>();
-    vector<shared_ptr<Chunk>> Chunks;
+    vector<vector<vector<shared_ptr<Chunk>>>> Chunks;
 
     /* UI */
     App app = App(this);

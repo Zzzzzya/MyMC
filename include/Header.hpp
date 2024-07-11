@@ -33,4 +33,5 @@ using std::shared_ptr;
 using std::unordered_map;
 using std::vector;
 
+#include "Log/Logger.hpp"
 #endif

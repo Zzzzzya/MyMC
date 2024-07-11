@@ -31,13 +31,14 @@ Texture::Texture(const std::string &filename, const std::string &directory) {
 }
 
 void Texture::loadTexture(const std::string &filename, const std::string &directory) {
+    auto logger = Loggers::getLogger("Texture");
     path = directory + filename;
 
     int width, height, nrComponents;
     stbi_set_flip_vertically_on_load(true);
     auto data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
     if (!data) {
-        std::clog << "ERROR::TEXTURE::LOAD TEXTURE FAILED ON PATH " << path << std::endl;
+        LOG_ERROR(logger, "ERROR::TEXTURE::LOAD TEXTURE FAILED ON PATH " + path);
         stbi_image_free(data);
         return;
     }
@@ -66,6 +67,8 @@ CubeMap::CubeMap(const std::vector<std::string> &faces, const std::string &direc
 }
 
 void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::string &directory) {
+    auto logger = Loggers::getLogger("Texture");
+
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
@@ -80,8 +83,8 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
             stbi_image_free(data);
         }
         else {
-            std::cout << "Cubemap texture failed to load at path: "
-                      << "../res/textures/skybox/" << faces[i] << std::endl;
+            LOG_ERROR(logger,
+                      std::string("Cubemap texture failed to load at path: ") + "../res/textures/skybox/" + faces[i]);
             stbi_image_free(data);
         }
     }
@@ -99,6 +102,7 @@ Texture_HDR::Texture_HDR(const std::string &paths, const std::string &directory)
 }
 
 unsigned int Texture_HDR::hdr() {
+    auto logger = Loggers::getLogger("Texture");
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
     float *data = stbi_loadf((std::string("../res/textures/HDR1.hdr")).c_str(), &width, &height, &nrComponents, 0);
@@ -117,12 +121,13 @@ unsigned int Texture_HDR::hdr() {
         stbi_image_free(data);
     }
     else {
-        std::cout << "Failed to load HDR image." << std::endl;
+        LOG_ERROR(logger, "Failed to load HDR image.");
     }
     return hdrTexture;
 }
 
 void Texture_HDR::loadHDR(const std::string &paths, const std::string &directory) {
+    auto logger = Loggers::getLogger("Texture");
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
     auto file = directory + paths;
@@ -142,7 +147,7 @@ void Texture_HDR::loadHDR(const std::string &paths, const std::string &directory
         id = hdrTexture;
     }
     else {
-        std::cout << "Failed to load HDR image." << std::endl;
+        LOG_ERROR(logger, "Failed to load HDR image.");
         id = -1;
     }
 
