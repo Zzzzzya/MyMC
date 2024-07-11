@@ -15,6 +15,10 @@ find_package(assimp CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include/GamePlay)
+include_directories(${PROJECT_SOURCE_DIR}/include/Header)
+include_directories(${PROJECT_SOURCE_DIR}/include/UI)
+include_directories(${PROJECT_SOURCE_DIR}/include/Render)
 
 file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB_RECURSE TEST_FILES ${PROJECT_SOURCE_DIR}/test/main.cc)
