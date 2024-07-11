@@ -77,6 +77,11 @@ void Shader::setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::m
     this->setMat3("normalMatrix", glm::transpose(glm::inverse(model)));
 }
 
+void Shader::setHandle(const std::string &name, const GLuint64 &handle) {
+    auto loc = glGetUniformLocation(pro, name.c_str());
+    glUniformHandleui64ARB(loc, handle);
+}
+
 // 如果没有几何着色器 只有顶点 + 片段
 void Shader::SetUpShader(const std::string &vertexName, const std::string &fragmentName,
                          const std::string &vertexDirectory, const std::string &fragmentDirectory) {

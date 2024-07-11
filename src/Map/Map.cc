@@ -1,7 +1,7 @@
 #include "Map.hpp"
 
 Map::Map(vec3 mapSize, int seed)
-    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Cube>>>>>()), seed(seed) {
+    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Mesh>>>>>()), seed(seed) {
 }
 
 void Map::InitMap() {
@@ -26,7 +26,7 @@ void Map::resizeMap() {
             cubes.resize(mapZ);
             for (auto &cube : cubes) {
                 cube = make_shared<Cube>();
-                cube->CubeID = 0;
+                cube->ID() = 0;
             }
         }
     }
@@ -48,13 +48,13 @@ void Map::generateMap() {
         for (int i = 0; i < mapX; i++)
             for (int k = 0; k < mapZ; k++) {
                 if (j < bedRockHeight) {
-                    map[i][j][k]->CubeID = CB_BEDROCK;
+                    map[i][j][k]->ID() = CB_BEDROCK;
                 }
                 else if (j < bedRockHeight + stoneHeight) {
-                    map[i][j][k]->CubeID = CB_STONE;
+                    map[i][j][k]->ID() = CB_STONE;
                 }
                 else if (j < bedRockHeight + stoneHeight + dirtHeight) {
-                    map[i][j][k]->CubeID = CB_DIRT_BLOCK;
+                    map[i][j][k]->ID() = CB_DIRT_BLOCK;
                 }
             }
 
@@ -72,10 +72,10 @@ void Map::generateMap() {
             int earthLine = bedRockHeight + stoneHeight + dirtHeight;
             int maxHeight = std::min(mapY, earthLine + y);
 
-            map[i][maxHeight - 1][k]->CubeID = CB_GRASS_BLOCK;
+            map[i][maxHeight - 1][k]->ID() = CB_GRASS_BLOCK;
             heightMap[i][k] = maxHeight - 1; // 草方格高度
             for (int j = maxHeight - 2; j >= earthLine; j--) {
-                map[i][j][k]->CubeID = CB_DIRT_BLOCK;
+                map[i][j][k]->ID() = CB_DIRT_BLOCK;
             }
         }
 
@@ -112,7 +112,7 @@ void Map::setExposed() {
     for (int i = 0; i < mapX; i++)
         for (int j = 0; j < mapY; j++)
             for (int k = 0; k < mapZ; k++) {
-                if (map[i][j][k]->CubeID == 0)
+                if (map[i][j][k]->ID() == 0)
                     continue;
                 for (int p = 0; p < 6; p++) {
                     int nx = i + dx[p];
@@ -120,7 +120,7 @@ void Map::setExposed() {
                     int nz = k + dz[p];
                     // If the cube is on the edge of the map or the cube is exposed
                     if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ ||
-                        map[nx][ny][nz]->CubeID == 0) {
+                        map[nx][ny][nz]->ID() == 0) {
                         map[i][j][k]->Exposed[p] = true;
                     }
                     else {
@@ -149,7 +149,7 @@ static std::vector<vec2> d3 = {
 
 bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
     for (int i = 1; i <= height + 2; i++)
-        if (y + i >= mapSize.y || (*_map)[x][y + i][z]->CubeID != 0)
+        if (y + i >= mapSize.y || (*_map)[x][y + i][z]->ID() != 0)
             return false;
 
     for (int i = height + 2; i >= height + 1; i--) {
@@ -158,7 +158,7 @@ bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
             int nz = z + d.y;
             if (nx < 0 || nx >= mapSize.x || nz < 0 || nz >= mapSize.z)
                 return false;
-            if ((*_map)[nx][y + i][nz]->CubeID != 0)
+            if ((*_map)[nx][y + i][nz]->ID() != 0)
                 return false;
         }
     }
@@ -169,7 +169,7 @@ bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
             int nz = z + d.y;
             if (nx < 0 || nx >= mapSize.x || nz < 0 || nz >= mapSize.z)
                 return false;
-            if ((*_map)[nx][y + i][nz]->CubeID != 0)
+            if ((*_map)[nx][y + i][nz]->ID() != 0)
                 return false;
         }
     }
@@ -177,18 +177,18 @@ bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
 }
 
 void Map::GenerateATree(int x, int y, int z, int height, int type) {
-    (*_map)[x][y][z]->CubeID = CB_DIRT_BLOCK;
+    (*_map)[x][y][z]->ID() = CB_DIRT_BLOCK;
     for (int i = 1; i <= height; i++)
-        (*_map)[x][y + i][z]->CubeID = CB_WOOD;
+        (*_map)[x][y + i][z]->ID() = CB_WOOD;
 
     auto leaveType = !type ? CB_LEAVES : CB_DIAMOND;
-    (*_map)[x][y + height + 1][z]->CubeID = leaveType;
-    (*_map)[x][y + height + 2][z]->CubeID = leaveType;
+    (*_map)[x][y + height + 1][z]->ID() = leaveType;
+    (*_map)[x][y + height + 2][z]->ID() = leaveType;
     for (int i = height + 2; i >= height + 1; i--) {
         for (auto &d : d2) {
             int nx = x + d.x;
             int nz = z + d.y;
-            (*_map)[nx][y + i][nz]->CubeID = leaveType;
+            (*_map)[nx][y + i][nz]->ID() = leaveType;
         }
     }
 
@@ -196,7 +196,7 @@ void Map::GenerateATree(int x, int y, int z, int height, int type) {
         for (auto &d : d3) {
             int nx = x + d.x;
             int nz = z + d.y;
-            (*_map)[nx][y + i][nz]->CubeID = leaveType;
+            (*_map)[nx][y + i][nz]->ID() = leaveType;
         }
     }
 }

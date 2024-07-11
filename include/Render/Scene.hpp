@@ -4,7 +4,7 @@
 
 #include "Header.hpp"
 #include "Shader.hpp"
-#include "Texture.hpp"
+#include "mTexture.hpp"
 #include "Mesh.hpp"
 #include "Player.hpp"
 #include "Map.hpp"

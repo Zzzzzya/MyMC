@@ -51,7 +51,7 @@ class Map {
 
     int seed;
     vec3 mapSize;
-    shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> _map;
+    shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> _map;
 
     int bedRockHeight = 10;
     int stoneHeight = 20;
@@ -60,7 +60,7 @@ class Map {
     vector<vector<int>> heightMap;
 
     void InitMap();
-    inline shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> GetMap() const {
+    inline shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> GetMap() const {
         return _map;
     }
 

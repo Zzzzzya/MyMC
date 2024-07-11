@@ -1,4 +1,4 @@
-#include "Texture.hpp"
+#include "mTexture.hpp"
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #endif
@@ -120,7 +120,8 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
+    handle = glGetTextureHandleARB(textureID);
+    glMakeTextureHandleResidentARB(handle);
     id = textureID;
 }
 

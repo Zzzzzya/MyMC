@@ -35,6 +35,7 @@ class Shader {
 
     // Uniforms
     void setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
+    void setHandle(const std::string &name, const GLuint64 &handle);
 
     // Shaders
     static vector<shared_ptr<Shader>> DefaultShader;

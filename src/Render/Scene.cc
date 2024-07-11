@@ -83,8 +83,8 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     // Setup GLFW
     if (!glfwInit())
         return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -158,7 +158,7 @@ int Scene::InitGUI() {
 
     // 设置GUI渲染器
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    ImGui_ImplOpenGL3_Init("#version 450");
 
     return 0;
 }
@@ -202,9 +202,7 @@ void Scene::MainRender() {
     cubeShader->setMat4("projection", projection);
 
     for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i]->id);
-        cubeShader->setInt("tex[" + std::to_string(i) + "]", i);
+        cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
     }
 
     for (auto &rol : Chunks)

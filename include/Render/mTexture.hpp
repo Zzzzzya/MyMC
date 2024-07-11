@@ -29,6 +29,7 @@ class Texture {
 class CubeMap {
   public:
     unsigned int id = -1;
+    GLuint64 handle = 0;
 
     CubeMap(const std::vector<std::string> &paths, const std::string &directory = std::string("../res/textures/"));
 

@@ -1,6 +1,6 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
-#include "Texture.hpp"
+#include "mTexture.hpp"
 #include "Map.hpp"
 
 /* Cube */
@@ -15,7 +15,22 @@ int Cube::GetShaderID() const {
     return CubeIdMap[CubeID].second;
 }
 
-static vector<Vertex> CubeVertice = {
+void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
+    for (int p = 0; p < 6; p++) {
+        if (Exposed[p]) {
+            for (int q = 0; q < 6; q++) {
+                Vertex vertex = CubeVertice[p * 6 + q];
+                vertex.CubeMapTex = vertex.position - vec3(0.0f);
+                vertex.position += WorldPos;
+                vertex.cubeID = CubeID;
+                vertex.faceID = p;
+                vertices.push_back(vertex);
+            }
+        }
+    }
+}
+
+vector<Vertex> Cube::CubeVertice = {
     // 右面
     {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
@@ -73,21 +88,10 @@ void Chunk::GenerateMesh() {
     for (int i = 0; i < size.x; i++)
         for (int j = 0; j < size.y; j++)
             for (int k = 0; k < size.z; k++) {
-                auto &cube = (*mapMap)[i + pos.x * size.x][j + pos.y * size.y][k + pos.z * size.z];
-                if (cube == nullptr || cube->CubeID == 0)
+                auto &mesh = (*mapMap)[i + pos.x * size.x][j + pos.y * size.y][k + pos.z * size.z];
+                if (mesh == nullptr || mesh->ID() == 0)
                     continue;
-                for (int p = 0; p < 6; p++) {
-                    if (cube->Exposed[p]) {
-                        for (int q = 0; q < 6; q++) {
-                            Vertex vertex = CubeVertice[p * 6 + q];
-                            vertex.CubeMapTex = vertex.position - vec3(0.0f);
-                            vertex.position += WorldPos + vec3(i, j, -k) * 2.0f;
-                            vertex.cubeID = cube->CubeID;
-                            vertex.faceID = p;
-                            vertices.push_back(vertex);
-                        }
-                    }
-                }
+                mesh->GenerateVertices(vertices, WorldPos + vec3(i, j, -k) * 2.0f);
             }
 }
 

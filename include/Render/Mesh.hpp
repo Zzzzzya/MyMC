@@ -23,16 +23,39 @@ class Texture;
 class Shader;
 class Map;
 
+struct Mesh {
+    bool Exposed[6] = {false, false, false, false, false, false};
+    virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const = 0;
+    virtual int &ID() = 0;
+    virtual ~Mesh() = default;
+};
+
 /* --------------  基础形体类 ------------- */
 /* Cube */
-struct Cube {
+struct Cube : public Mesh {
     int CubeID = 0;
-    bool Exposed[6] = {false, false, false, false, false, false};
+    static vector<Vertex> CubeVertice;
     static unordered_map<int, std::pair<int, int>> CubeIdMap; // CubeID -> TextureID, ShaderID
     int GetTextureID() const;
     int GetShaderID() const;
+    virtual int &ID() override {
+        return this->CubeID;
+    }
+    virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
+/* Quad */
+struct Quad : public Mesh {
+    int QuadID = 0;
+    static vector<Vertex2D> QuadVertice;
+    static unordered_map<int, std::pair<int, int>> QuadIdMap; // QuadID -> TextureID, ShaderID
+    virtual int &ID() override {
+        return this->QuadID;
+    }
+    virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
+};
+
+/* --------------------------------- 核心数据结构  Chunk类 🫣🫣🥵🥵🥵😍😍😍😍😘😘😘😘 ------------------------------*/
 /* ------- Chunk -------- */
 class Chunk {
   public:
