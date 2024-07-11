@@ -67,6 +67,7 @@ Chunk::Chunk(const shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> &Map, ve
 void Chunk::GenerateMesh() {
     auto logger = Loggers::getLogger("Chunk");
     vec3 WorldPos = pos * size * 2.0f;
+    WorldPos.z = -WorldPos.z;
     for (int i = 0; i < size.x; i++)
         for (int j = 0; j < size.y; j++)
             for (int k = 0; k < size.z; k++) {
