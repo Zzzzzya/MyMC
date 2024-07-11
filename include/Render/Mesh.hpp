@@ -27,6 +27,7 @@ struct Mesh {
     bool Exposed[6] = {false, false, false, false, false, false};
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const = 0;
     virtual int &ID() = 0;
+    virtual bool Occluded() const = 0;
     virtual ~Mesh() = default;
 };
 
@@ -38,6 +39,9 @@ struct Cube : public Mesh {
     static unordered_map<int, std::pair<int, int>> CubeIdMap; // CubeID -> TextureID, ShaderID
     int GetTextureID() const;
     int GetShaderID() const;
+    virtual bool Occluded() const override {
+        return CubeID;
+    }
     virtual int &ID() override {
         return this->CubeID;
     }
@@ -47,11 +51,15 @@ struct Cube : public Mesh {
 /* Quad */
 struct Quad : public Mesh {
     int QuadID = 0;
-    static vector<Vertex2D> QuadVertice;
+    static vector<Vertex> QuadVertice;
     static unordered_map<int, std::pair<int, int>> QuadIdMap; // QuadID -> TextureID, ShaderID
+    virtual bool Occluded() const override {
+        return false;
+    }
     virtual int &ID() override {
         return this->QuadID;
     }
+
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -82,4 +90,8 @@ class Chunk {
 #define CB_WOOD 5
 #define CB_LEAVES 6
 #define CB_DIAMOND 7
+
+// 四边形纹理宏定义
+#define QD_EMPTY 0
+#define QD_GRASS 1
 #endif

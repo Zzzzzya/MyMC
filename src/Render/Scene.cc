@@ -119,7 +119,7 @@ int Scene::InitShaders() {
 }
 
 int Scene::InitTextures() {
-    // Texture::setUpDefaultTextures();
+    Texture::setUpDefaultTextures();
     CubeMap::setUpDefaultCubeMaps();
     return 0;
 }
@@ -158,7 +158,7 @@ int Scene::InitGUI() {
 
     // 设置GUI渲染器
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 450");
+    ImGui_ImplOpenGL3_Init("#version 460");
 
     return 0;
 }
@@ -201,7 +201,19 @@ void Scene::MainRender() {
     cubeShader->setMat4("view", view);
     cubeShader->setMat4("projection", projection);
 
+    int texNum = 0;
+    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
+        // glActiveTexture(GL_TEXTURE0 + i);
+        // glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        // cubeShader->setInt("tex2D[" + std::to_string(i) + "]", i);
+        cubeShader->setHandle("tex2D[" + std::to_string(i) + "]", Texture::DefaultTexture[i]->handle);
+        texNum++;
+    }
+
     for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
+        // glActiveTexture(GL_TEXTURE0 + i);
+        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i - texNum]->id);
+        // cubeShader->setInt("tex[" + std::to_string(i - texNum) + "]", i);
         cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
     }
 

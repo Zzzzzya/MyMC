@@ -5,20 +5,19 @@
 #include "stb_image.h"
 
 static std::string path = "../res/Models/Cubes/";
+static std::string QuadPath = "../res/Models/Quads/";
 static vector<std::string> filename = {"/right.png", "/left.png", "/top.png", "/bottom.png", "/front.png", "/back.png"};
-// static vector<std::string> filename = {"/top.png", "/top.png", "/top.png", "/top.png", "/top.png", "/top.png"};
+
 vector<shared_ptr<Texture>> Texture::DefaultTexture = {};
 
 /* Default Textures */
 static void setUpDefaultTexturesHelper(const std::string &CubeName) {
-    for (int i = 0; i < 6; i++) {
-        Texture::DefaultTexture.push_back(make_shared<Texture>(filename[i], path + CubeName));
-    }
+    Texture::DefaultTexture.push_back(make_shared<Texture>("/0.png", QuadPath + CubeName));
 }
 
 void Texture::setUpDefaultTextures() {
     // 0
-    setUpDefaultTexturesHelper("GrassBlock");
+    setUpDefaultTexturesHelper("Grass");
 }
 
 shared_ptr<Texture> Texture::GetDefaultTexture(int i) {
@@ -76,13 +75,18 @@ void Texture::loadTexture(const std::string &filename, const std::string &direct
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D); // 纹理记得生成MipMap！
+
     setTexParam();
+
     stbi_image_free(data);
+    handle = glGetTextureHandleARB(textureID);
+    glMakeTextureHandleResidentARB(handle);
+    stbi_set_flip_vertically_on_load(false);
+    glBindTexture(GL_TEXTURE_2D, 0);
     return;
 }
 
 void Texture::setTexParam() {
-    glBindTexture(GL_TEXTURE_2D, id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
@@ -122,6 +126,7 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     handle = glGetTextureHandleARB(textureID);
     glMakeTextureHandleResidentARB(handle);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     id = textureID;
 }
 

@@ -69,6 +69,12 @@ class Map {
     void generateMap();
     void setExposed();
 
+    // 地表物体生成
+    void GenerateEarth();
+    void GenerateSurface();
+    void GenerateTrees();
+    void GenerateGrass();
+
     bool CheckIfCanContainsATree(int x, int y, int z, int height);
     void GenerateATree(int x, int y, int z, int height, int type = 0);
 };

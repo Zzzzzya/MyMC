@@ -13,6 +13,7 @@ class Texture {
     int wrapT = GL_REPEAT;
     int minFilter = GL_LINEAR_MIPMAP_LINEAR;
     int magFilter = GL_LINEAR;
+    GLuint64 handle = 0;
 
     Texture();
     Texture(const std::string &filename, const std::string &directory = std::string("../res/textures/"));

@@ -23,7 +23,7 @@ void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
                 vertex.CubeMapTex = vertex.position - vec3(0.0f);
                 vertex.position += WorldPos;
                 vertex.cubeID = CubeID;
-                vertex.faceID = p;
+                vertex.faceID = 0;
                 vertices.push_back(vertex);
             }
         }
@@ -75,6 +75,30 @@ vector<Vertex> Cube::CubeVertice = {
     {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
 };
 
+/* Quad */
+vector<Vertex> Quad::QuadVertice = {
+    // 前面
+    {{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}}, {{1.0f, -1.0f, 0.0f}, {1.0f, 0.0f}}, {{1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}}, {{1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},  {{-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+};
+void Quad::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
+    for (int p = 0; p < 6; p++) {
+        if (Exposed[p] == true) {
+            for (int q = 0; q < 6; q++) {
+                Vertex vertex = QuadVertice[q];
+                vertex.CubeMapTex = vertex.position;
+                vertex.position += WorldPos;
+                vertex.cubeID = QuadID;
+                vertex.faceID = 1;
+                vertices.push_back(vertex);
+            }
+            return;
+        }
+    }
+}
+
+/* Chunk */
 Chunk::Chunk(const shared_ptr<Map> &Map, vec3 position, vec3 size) : map(Map), pos(position), size(size) {
     init();
 }
