@@ -12,7 +12,7 @@ class PerlinNoise2D {
     noise::module::Perlin perlinModule;
 
   public:
-    PerlinNoise2D(float frequency = 10.0, float persistence = 0.02, float lacunarity = 2.0, int octaveCount = 3,
+    PerlinNoise2D(float frequency = 5.0, float persistence = 0.01, float lacunarity = 2.0, int octaveCount = 3,
                   noise::NoiseQuality noiseQuality = noise::QUALITY_STD) {
         // 初始化 Perlin 噪声模块的参数
         perlinModule.SetFrequency(frequency);       // 设置频率

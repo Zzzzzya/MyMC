@@ -12,8 +12,7 @@ uniform sampler2D tex2D[MAX_TEXTURES];
 uniform samplerCube tex[MAX_TEXTURES];
 
 void main() {
-    // FragColor = texture(tex[index], TexCoordsCubeMap);
-    // FragColor = texture(tex2D[index], TexCoords);
-    // FragColor = vec4(meshType, 0.0, 0.0, 1.0);
     FragColor = meshType == 0 ? texture(tex[index], TexCoordsCubeMap) : texture(tex2D[index], TexCoords);
+    if (FragColor.a < 0.1)
+        discard;
 }

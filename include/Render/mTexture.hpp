@@ -9,10 +9,10 @@ class Texture {
     unsigned int id = -1;
     std::string type = "";
     std::string path;
-    int wrapS = GL_REPEAT;
-    int wrapT = GL_REPEAT;
-    int minFilter = GL_LINEAR_MIPMAP_LINEAR;
-    int magFilter = GL_LINEAR;
+    int wrapS = GL_CLAMP_TO_EDGE;
+    int wrapT = GL_CLAMP_TO_EDGE;
+    int minFilter = GL_NEAREST_MIPMAP_LINEAR;
+    int magFilter = GL_NEAREST;
     GLuint64 handle = 0;
 
     Texture();

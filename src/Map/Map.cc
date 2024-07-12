@@ -115,8 +115,9 @@ void Map::GenerateSurface() {
             double z = (double)k / mapZ;
             // double height = perlinNoise.GetValue(x, z);
             double height = perlinNoise.GenerateTerrain(x, z);
-            int y = (int)(height * 20);
             int earthLine = bedRockHeight + stoneHeight + dirtHeight;
+            int y = (int)(height * 40);
+
             int maxHeight = std::min(mapY, earthLine + y);
 
             map[i][maxHeight - 1][k]->ID() = CB_GRASS_BLOCK;
@@ -158,8 +159,9 @@ void Map::GenerateGrass() {
     for (int i = 0; i < mapX; i++)
         for (int k = 0; k < mapZ; k++) {
             int y = heightMap[i][k];
-            if (map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY && map[i][y + 1][k]->ID() == QD_EMPTY) {
-                map[i][y + 1][k] = make_shared<Quad>();
+            if (map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY && map[i][y + 1][k]->ID() == QD_EMPTY &&
+                rand(0, 100) < 10) {
+                map[i][y + 1][k] = make_shared<CrossQuad>();
                 map[i][y + 1][k]->ID() = QD_GRASS;
             }
         }

@@ -191,6 +191,10 @@ void Scene::MainRender() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    Chunks[0][0][0]->GenerateMesh();
+    Chunks[0][0][0]->GenerateMesh();
+    Chunks[0][0][0]->GenerateMesh();
+
     // MVPs
     mat4 view = player->camera.ViewMat();
     mat4 projection =

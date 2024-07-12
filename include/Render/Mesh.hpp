@@ -63,6 +63,21 @@ struct Quad : public Mesh {
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
+/* CrossQuad */
+struct CrossQuad : public Mesh {
+    int CrossQuadID = 0;
+    static vector<Vertex> CrossQuadVertice;
+    static unordered_map<int, std::pair<int, int>> CrossQuadIdMap; // CrossQuadID -> TextureID, ShaderID
+    virtual bool Occluded() const override {
+        return false;
+    }
+    virtual int &ID() override {
+        return this->CrossQuadID;
+    }
+
+    virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
+};
+
 /* --------------------------------- 核心数据结构  Chunk类 🫣🫣🥵🥵🥵😍😍😍😍😘😘😘😘 ------------------------------*/
 /* ------- Chunk -------- */
 class Chunk {

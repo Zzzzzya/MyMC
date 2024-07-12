@@ -98,12 +98,49 @@ void Quad::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
     }
 }
 
+/* Cross Quad */
+vector<Vertex> CrossQuad::CrossQuadVertice = {
+    // 左上右下
+    {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
+    {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
+    {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+    // 左下右上
+    {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+    {{1.0f, -1.0f, 1.0f}, {1.0f, 0.0f}},
+    {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
+
+};
+void CrossQuad::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
+    for (int p = 0; p < 6; p++) {
+        if (Exposed[p] == true) {
+            for (int q = 0; q < 12; q++) {
+                Vertex vertex = CrossQuadVertice[q];
+                vertex.CubeMapTex = vertex.position;
+                vertex.position += WorldPos;
+                vertex.cubeID = CrossQuadID;
+                vertex.faceID = 1;
+                vertices.push_back(vertex);
+            }
+            return;
+        }
+    }
+}
+
 /* Chunk */
 Chunk::Chunk(const shared_ptr<Map> &Map, vec3 position, vec3 size) : map(Map), pos(position), size(size) {
     init();
 }
 
 void Chunk::GenerateMesh() {
+    if (vertices.size() != 0) {
+        vertices.clear();
+    }
     auto logger = Loggers::getLogger("Chunk");
     vec3 WorldPos = pos * size * 2.0f;
     WorldPos.z = -WorldPos.z;

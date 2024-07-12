@@ -62,13 +62,14 @@ void Texture::loadTexture(const std::string &filename, const std::string &direct
 
     int width, height, nrComponents;
     stbi_set_flip_vertically_on_load(true);
-    auto data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+    auto data = stbi_load(path.c_str(), &width, &height, &nrComponents, STBI_rgb_alpha);
     if (!data) {
         LOG_ERROR(logger, "ERROR::TEXTURE::LOAD TEXTURE FAILED ON PATH " + path);
         stbi_image_free(data);
         return;
     }
-    GLenum format = (nrComponents == 1) ? GL_RED : (nrComponents == 3 ? GL_RGB : GL_RGBA);
+    // GLenum format = (nrComponents == 1) ? GL_RED : (nrComponents == 3 ? GL_RGB : GL_RGBA);
+    GLenum format = GL_RGBA;
     unsigned int textureID;
     glGenTextures(1, &textureID);
     id = textureID;
@@ -81,7 +82,7 @@ void Texture::loadTexture(const std::string &filename, const std::string &direct
     stbi_image_free(data);
     handle = glGetTextureHandleARB(textureID);
     glMakeTextureHandleResidentARB(handle);
-    stbi_set_flip_vertically_on_load(false);
+
     glBindTexture(GL_TEXTURE_2D, 0);
     return;
 }
@@ -99,15 +100,16 @@ CubeMap::CubeMap(const std::vector<std::string> &faces, const std::string &direc
 
 void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::string &directory) {
     auto logger = Loggers::getLogger("Texture");
-
+    stbi_set_flip_vertically_on_load(false);
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
     int width, height, nrChannels;
     for (unsigned int i = 0; i < faces.size(); i++) {
-        unsigned char *data = stbi_load((directory + faces[i]).c_str(), &width, &height, &nrChannels, 0);
-        GLenum format = (nrChannels == 1) ? GL_RED : (nrChannels == 3 ? GL_RGB : GL_RGBA);
+        unsigned char *data = stbi_load((directory + faces[i]).c_str(), &width, &height, &nrChannels, STBI_rgb_alpha);
+        // GLenum format = (nrChannels == 1) ? GL_RED : (nrChannels == 3 ? GL_RGB : GL_RGBA);
+        GLenum format = GL_RGBA;
         if (data) {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE,
                          data);
@@ -121,8 +123,8 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     handle = glGetTextureHandleARB(textureID);
     glMakeTextureHandleResidentARB(handle);

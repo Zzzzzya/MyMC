@@ -49,10 +49,10 @@ class Scene : public std::enable_shared_from_this<Scene> {
     shared_ptr<Player> player = make_shared<Player>(vec3(0.0f, 100.0f, 0.0f));
 
     /* 地图 */
-    int mapX = 20 * 10;
+    int mapX = 40 * 8;
     int mapY = 20 * 10;
-    int mapZ = 20 * 10;
-    vec3 ChunkSize = vec3(20, 20, 20);
+    int mapZ = 40 * 8;
+    vec3 ChunkSize = vec3(40, 20, 40);
     int CubeSize = 2.0f;
     // shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> Map =
     // make_shared<vector<vector<vector<shared_ptr<Cube>>>>>();
