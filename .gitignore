@@ -4,7 +4,7 @@ examples/build/
 ./CMakeUserPresets.json
 .vscode/
 .clang-format
-log/
+./log/
 *.
 Game/build/
 Game/examples/build/
