@@ -37,3 +37,31 @@ target_link_directories(MyMC PRIVATE ${Stb_INCLUDE_DIR})
 target_link_libraries(MyMC PRIVATE assimp::assimp)
 target_link_libraries(MyMC PRIVATE spdlog::spdlog)
 target_link_libraries(MyMC PRIVATE unofficial::noise::noise)
+
+# 设置项目的版本号 (用于生成安装包)
+set(CPACK_PACKAGE_VERSION_MAJOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "1")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
+# 定义安装包的名字和类型
+set(CPACK_PACKAGE_NAME "MyMC")
+
+# 生成安装包的类型 (ZIP, TGZ, DEB, RPM 等)
+set(CPACK_GENERATOR "ZIP")
+
+# 安装规则
+# 安装可执行文件到 bin 目录
+install(TARGETS MyMC DESTINATION bin)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION .)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/shaders DESTINATION .)
+install(FILES ${PROJECT_SOURCE_DIR}/build/fmtd.dll DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/glew32d.dll DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/glfw3.dll DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/noise.dll DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/spdlogd.dll DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/imgui.ini DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/MyMC.pdb DESTINATION bin)
+
+# 打包配置
+include(CPack)
