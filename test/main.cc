@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include "Log/Logger.hpp"
 
+/* 主世界 */
 auto scene = make_shared<Scene>();
 
 /* 鼠标绑定函数 */
@@ -10,8 +11,10 @@ void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset);
 int main(int argc, char **argv) {
     Loggers::init();
 
+    /* 世界初始化准备 */
     scene->InitScene(ProcessCursorPos, ProcessScroll);
 
+    /* 世界大循环准备 - 包括游戏循环 & 渲染循环 */
     scene->MainLoop();
 
     scene->DestroyScene();

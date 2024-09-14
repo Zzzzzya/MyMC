@@ -28,6 +28,7 @@ struct Mesh {
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const = 0;
     virtual int &ID() = 0;
     virtual bool Occluded() const = 0;
+    virtual bool Passed() const = 0;
     virtual ~Mesh() = default;
 };
 
@@ -45,6 +46,9 @@ struct Cube : public Mesh {
     virtual int &ID() override {
         return this->CubeID;
     }
+    virtual bool Passed() const override {
+        return !CubeID;
+    }
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -58,6 +62,9 @@ struct Quad : public Mesh {
     }
     virtual int &ID() override {
         return this->QuadID;
+    }
+    virtual bool Passed() const override {
+        return !QuadID;
     }
 
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
@@ -73,6 +80,9 @@ struct CrossQuad : public Mesh {
     }
     virtual int &ID() override {
         return this->CrossQuadID;
+    }
+    virtual bool Passed() const override {
+        return true;
     }
 
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;

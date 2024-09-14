@@ -5,6 +5,7 @@
 
 #include "Header.hpp"
 
+class Map;
 class Camera {
   public:
     vec3 position = vec3(0.0f, 0.0f, 0.0f);
@@ -28,15 +29,17 @@ class Camera {
         RIGHT
     };
 
-    bool GameMode_Survival = false;
+    bool GameMode_Survival = true;
 
   public:
     Camera(const vec3 &pos);
     mat4 ViewMat() const;
     mat4 ViewBackMat() const;
-    void ProcessKeyBoard(Movement move, float deltaTime);
+    void ProcessKeyBoard(Movement move, float deltaTime, shared_ptr<Map> map);
     void ProcessCursorPos(float offsetX, float offsetY);
     void ProcessScroll(float offsetY);
+    void ProcessDropDown(float deltaTime, const shared_ptr<Map> &map);
+    void ProcessJump(float deltaTime, const shared_ptr<Map> &map);
 
   private:
     void updateCameraVectors();

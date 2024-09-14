@@ -61,8 +61,22 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     /* UI */
     App app = App(this);
+    shared_ptr<Texture> spark;
+    unsigned int sparkVAO, sparkVBO;
+
+    /* GamePlay相关 */
+    float viewRayTraceDistance = 10.0f;
+    float viewRayTraceStep = 0.1f;
+    bool SelectedAnyBlock = false;
+    vec3 SelectedBlockToDo = vec3(0.0f, 0.0f, 0.0f);
+    vec3 SelectedBlockToAdd = vec3(0.0f, 0.0f, 0.0f);
+    unsigned int SelectedBlockVAO, SelectedBlockVBO;
+    vector<Vertex> SelectedBlockVertices;
 
     Scene();
+    /*
+     *
+     */
     void InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double) = nullptr,
                    void (*scrollCallback)(GLFWwindow *, double, double) = nullptr);
     void MainLoop();
@@ -82,6 +96,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void MainRender();
 
     void ProcessKeyInput();
+    void ProcessMovement();
 };
 
 #endif

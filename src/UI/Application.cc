@@ -64,6 +64,11 @@ void App::Run() {
     if (scene->showFPS) {
         ImGui::Begin("FPS");
         ImGui::Text("FPS: %.1f", scene->fps);
+        ImGui::Text("Selected position: (%.1f, %.1f, %.1f)", scene->SelectedBlockToDo.x, scene->SelectedBlockToDo.y,
+                    scene->SelectedBlockToDo.z);
+        static auto N = vec3(0.0f, 1.0f, 0.0f);
+        auto trueFront = normalize(scene->player->camera.front - dot(scene->player->camera.front, N) * N);
+        ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", trueFront.x, trueFront.y, trueFront.z);
         ImGui::End();
     }
 }

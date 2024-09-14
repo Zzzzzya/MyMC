@@ -63,6 +63,18 @@ class Map {
     inline shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> GetMap() const {
         return _map;
     }
+    static inline vec3 GetBlockCoords(const vec3 &pos) {
+        auto thePos = pos + vec3(1.0f, 1.0f, -1.0f);
+        thePos.z = -thePos.z;
+        thePos /= 2.0f;
+        return vec3(floor(thePos.x), floor(thePos.y), floor(thePos.z));
+    }
+    bool CheckCollision(const vec3 &position, vec3 &movVec) const;
+    bool CheckCollisionSingle(const vec3 &position) const;
+    bool CheckCollisionHelper(const vec3 &pos) const;
+    bool CheckHaveSomething(const vec3 &pos) const;
+    bool ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis = 10.0f,
+                      float step = 0.1f) const;
 
   private:
     void resizeMap();

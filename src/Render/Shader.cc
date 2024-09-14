@@ -11,6 +11,8 @@ vector<shared_ptr<Shader>> Shader::DefaultShader = {};
 /* Shader 序号表请查阅 docs/Shader.md */
 void Shader::setUpDefaultShaders() {
     DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeMap.fs"));
+    DefaultShader.push_back(make_shared<Shader>("spark.vs", "spark.fs"));
+    DefaultShader.push_back(make_shared<Shader>("border.vs", "border.fs"));
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {

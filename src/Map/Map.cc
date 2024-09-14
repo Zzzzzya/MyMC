@@ -12,6 +12,65 @@ void Map::InitMap() {
     setExposed();
 }
 
+bool Map::CheckCollisionHelper(const vec3 &blockPos) const {
+    // true for permit to pass
+    if (blockPos.x < 0 || blockPos.x >= mapSize.x || blockPos.y < 0 || blockPos.y >= mapSize.y || blockPos.z < 0 ||
+        blockPos.z >= mapSize.z) {
+        return true;
+    }
+    auto &map = *(this->_map);
+    if (map[blockPos.x][blockPos.y][blockPos.z]->Passed())
+        return true;
+    return false;
+}
+
+bool Map::CheckHaveSomething(const vec3 &blockPos) const {
+    if (blockPos.x < 0 || blockPos.x >= mapSize.x || blockPos.y < 0 || blockPos.y >= mapSize.y || blockPos.z < 0 ||
+        blockPos.z >= mapSize.z) {
+        return false;
+    }
+    auto &map = *(this->_map);
+    if (map[blockPos.x][blockPos.y][blockPos.z]->ID() != 0)
+        return true;
+    return false;
+}
+
+bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis,
+                       float step) const {
+    // ensure the direction is normalized
+    for (float i = 0; i < dis; i += step) {
+        vec3 newPos = position + direction * i;
+        auto blockPos = GetBlockCoords(newPos);
+        if (CheckHaveSomething(blockPos)) {
+            ToDo = blockPos;
+            ToAdd = direction * i;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {
+    // Check the collision with the map
+    // position wants to move as movVec
+    vec3 newPos = position + movVec;
+    vec3 newPos2 = position - vec3(0.0f, 2.0f, 0.0f) + movVec;
+    auto blockPos = GetBlockCoords(newPos);
+    auto blockPos2 = GetBlockCoords(newPos2);
+    if (!CheckCollisionHelper(blockPos) || !CheckCollisionHelper(blockPos2))
+        return false;
+    return true;
+}
+
+bool Map::CheckCollisionSingle(const vec3 &position) const {
+    // true for permit to pass
+    vec3 newPos = position;
+    auto blockPos = GetBlockCoords(newPos);
+    if (!CheckCollisionHelper(blockPos))
+        return false;
+    return true;
+}
+
 // Init Step 1 : Resize the map & fill the map with cubes 0
 void Map::resizeMap() {
     auto &map = *(this->_map);
