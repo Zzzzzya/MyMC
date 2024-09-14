@@ -1,10 +1,10 @@
 build/
 examples/build/
-CMakePresets.json
-CMakeUserPresets.json
+./CMakePresets.json
+./CMakeUserPresets.json
 .vscode/
 .clang-format
-log/
+./log/
 *.
 Game/build/
 Game/examples/build/
@@ -13,4 +13,3 @@ Game/CMakeUserPresets.json
 Game/.vscode/
 Game/.clang-format
 Game/log/
-Game/*.
