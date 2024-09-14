@@ -12,12 +12,14 @@ class App {
   public:
     enum class State {
         INIT,
+        CREATING_NEW_GAME,
         RUN,
         SETTING,
-        WAITING
+        WAITING,
     };
 
     State state = State::INIT;
+
     Scene *scene = nullptr;
 
     App(Scene *scene);
@@ -29,6 +31,7 @@ class App {
     void Setting();
     void Run();
     void Waiting();
+    void CreatingNewGame();
 };
 
 #endif

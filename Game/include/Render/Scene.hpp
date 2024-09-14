@@ -46,13 +46,13 @@ class Scene : public std::enable_shared_from_this<Scene> {
     GLFWwindow *window = nullptr;
 
     /* 玩家 */
-    shared_ptr<Player> player = make_shared<Player>(vec3(0.0f, 100.0f, 0.0f));
+    shared_ptr<Player> player = make_shared<Player>(vec3(20.0f, 100.0f, -20.0f));
 
     /* 地图 */
     int mapX = 40 * 8;
     int mapY = 20 * 10;
     int mapZ = 40 * 8;
-    vec3 ChunkSize = vec3(40, 20, 40);
+    vec3 ChunkSize = vec3(40, 200, 40);
     int CubeSize = 2.0f;
 
     shared_ptr<Map> map;
@@ -60,6 +60,8 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     /* UI */
     App app = App(this);
+    bool bBeginCreatingNewGame = false;
+    bool bMapReady{false};
     shared_ptr<Texture> spark;
     unsigned int sparkVAO, sparkVBO;
 
@@ -79,7 +81,6 @@ class Scene : public std::enable_shared_from_this<Scene> {
      *
      * @param cursorPosCallback
      * @param scrollCallback
-     * TODO: 初始化分离，游戏选择页面 -> 新游戏再初始化
      */
     void InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double) = nullptr,
                    void (*scrollCallback)(GLFWwindow *, double, double) = nullptr);
@@ -97,6 +98,8 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     void UpdateTimeAndFPS();
     void ProcessWindow();
+
+    void CreatingNewGame();
     void MainRender();
 
     void ProcessKeyInput();

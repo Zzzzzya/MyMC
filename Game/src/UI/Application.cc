@@ -22,7 +22,10 @@ void App::PrepareRender() {
         Run();
         break;
     case State::WAITING:
-        Init();
+        Waiting();
+        break;
+    case State::CREATING_NEW_GAME:
+        CreatingNewGame();
         break;
     default:
         break;
@@ -48,10 +51,32 @@ void App::Init() {
     ImGui::Text("FPS: %.1f", scene->fps);
     // 创建一个无边框按钮
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-    if (ImGui::Button("In Game!")) {
-        state = State::RUN;
+
+    /**
+     * @brief 主界面渲染逻辑
+     * @button New Game 新游戏
+     * @button Continue Game 继续游戏
+     * @button Load Game 导入游戏
+     * @button Setting 设置
+     *
+     */
+    if (ImGui::Button("New Game!")) {
+        state = State::CREATING_NEW_GAME;
         glfwSetInputMode(scene->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         scene->cursorInWindow = true;
+    }
+    if (ImGui::Button("Continue Game!")) {
+        // TODO：继续上一次游戏
+        /**
+         * @brief Step 1 ： Check if there is a saved game
+         * @brief Step 2 ： Load the saved game
+         */
+    }
+    if (ImGui::Button("Load Game!")) {
+        // TODO：加载某个游戏存档
+        /**
+         * @brief
+         */
     }
     ImGui::PopStyleVar();
     ImGui::End();
@@ -74,4 +99,36 @@ void App::Run() {
 }
 
 void App::Waiting() {
+    // 创建一个窗口
+    ImGui::Begin("Example Window");
+    ImGui::Text("FPS: %.1f", scene->fps);
+    // 创建一个无边框按钮
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
+    /**
+     * @brief 主界面渲染逻辑
+     * @button Continue Game 继续游戏
+     *
+     */
+    if (ImGui::Button("Continue Game!")) {
+        state = State::RUN;
+        glfwSetInputMode(scene->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        scene->cursorInWindow = true;
+    }
+    ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+void App::CreatingNewGame() {
+    // 创建一个窗口
+    ImGui::Begin("Example Window");
+
+    ImGui::Text("CREATING NEW WORLD! %d", 1);
+
+    if (scene->bMapReady) {
+        state = State::RUN;
+    }
+
+    // ImGui::PopStyleVar();
+    ImGui::End();
 }

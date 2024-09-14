@@ -49,5 +49,7 @@ inline int rand(int min, int max) {
     return dis(gen);
 }
 
+#include <thread>
+
 #include "Log/Logger.hpp"
 #endif

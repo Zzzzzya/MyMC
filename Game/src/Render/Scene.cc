@@ -10,6 +10,8 @@ void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
     auto logger = Loggers::getLogger("Scene");
 
     LOG_INFO(logger, "Init Scene");
+
+    LOG_INFO(logger, "Init Window");
     auto ResInitWindow = InitWindow(cursorPosCallback, scrollCallback);
     if (ResInitWindow == -1) {
         LOG_ERROR(logger, "Failed to create GLFW window");
@@ -23,27 +25,6 @@ void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
         glfwTerminate();
     }
 
-    LOG_INFO(logger, "Init Shaders");
-    auto ResInitShaders = InitShaders();
-    if (ResInitRender == -1) {
-        LOG_ERROR(logger, "Failed to init Shaders");
-        glfwTerminate();
-    }
-
-    LOG_INFO(logger, "Init Textures");
-    auto ResInitTextures = InitTextures();
-    if (ResInitRender == -1) {
-        LOG_ERROR(logger, "Failed to init Textures");
-        glfwTerminate();
-    }
-
-    LOG_INFO(logger, "Init Map");
-    auto ResInitMeshes = InitMap();
-    if (ResInitRender == -1) {
-        LOG_ERROR(logger, "Failed to init Map");
-        glfwTerminate();
-    }
-
     LOG_INFO(logger, "Init GUI");
     auto ResInitGUI = InitGUI();
     if (ResInitRender == -1) {
@@ -54,6 +35,9 @@ void Scene::InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double),
 
 /* 主渲染循环 */
 void Scene::MainLoop() {
+    // 获取日志系统
+    auto logger = Loggers::getLogger("MainLoop");
+
     /* Render Loop */
     while (!glfwWindowShouldClose(window)) {
         /* 更新时间 */
@@ -62,6 +46,10 @@ void Scene::MainLoop() {
         app.PrepareRender();
 
         /* 渲染 */
+        if (app.state == App::State::CREATING_NEW_GAME) {
+            CreatingNewGame();
+        }
+
         if (app.state == App::State::RUN)
             MainRender();
 
@@ -72,9 +60,39 @@ void Scene::MainLoop() {
 
         /* GamePlay */
         // 1. 射线追踪 找到当前对准的方块
-        SelectedAnyBlock = map->ViewRayTrace(player->camera.position, player->camera.front, SelectedBlockToDo,
-                                             SelectedBlockToAdd, viewRayTraceDistance, viewRayTraceStep);
+        if (app.state == App::State::RUN)
+            SelectedAnyBlock = map->ViewRayTrace(player->camera.position, player->camera.front, SelectedBlockToDo,
+                                                 SelectedBlockToAdd, viewRayTraceDistance, viewRayTraceStep);
     }
+}
+
+void Scene::CreatingNewGame() {
+    // 获取日志系统
+    auto logger = Loggers::getLogger("CreatingNewGame");
+    static int state = 0;
+
+    LOG_INFO(logger, "Init Shaders");
+    auto ResInitShaders = InitShaders();
+    if (ResInitShaders == -1) {
+        LOG_ERROR(logger, "Failed to init Shaders");
+        glfwTerminate();
+    }
+
+    LOG_INFO(logger, "Init Textures");
+    auto ResInitTextures = InitTextures();
+    if (ResInitTextures == -1) {
+        LOG_ERROR(logger, "Failed to init Textures");
+        glfwTerminate();
+    }
+
+    LOG_INFO(logger, "Init Map");
+    auto ResInitMeshes = InitMap();
+    if (ResInitMeshes == -1) {
+        LOG_ERROR(logger, "Failed to init Map");
+        glfwTerminate();
+    }
+
+    app.state = App::State::RUN;
 }
 
 void Scene::MainRender() {
@@ -104,8 +122,9 @@ void Scene::MainRender() {
 
     for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
         // glActiveTexture(GL_TEXTURE0 + i);
-        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i - texNum]->id);
-        // cubeShader->setInt("tex[" + std::to_string(i - texNum) + "]", i);
+        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i -
+        // texNum]->id); cubeShader->setInt("tex[" + std::to_string(i - texNum) +
+        // "]", i);
         cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
     }
 
