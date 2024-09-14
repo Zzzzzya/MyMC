@@ -116,6 +116,7 @@ void Scene::MainRender() {
             }
 
     // 渲染选中物体
+    // TODO: 预选物体渲染抽离到函数
     if (SelectedAnyBlock) {
         if (SelectedBlockVertices.size() != 0) {
             SelectedBlockVertices.clear();
@@ -147,6 +148,7 @@ void Scene::MainRender() {
     }
 
     // 渲染光标
+    // TODO：光标渲染抽离到函数
     glDisable(GL_DEPTH_TEST);
     auto sparkShader = Shader::GetDefaultShader(1);
     static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
@@ -199,7 +201,7 @@ int Scene::InitRender() {
     glewInit();
 
     // 渲染初始化参数设置
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST); // 开启深度测试
 
     // 选中物体渲染设置
     glGenVertexArrays(1, &SelectedBlockVAO);

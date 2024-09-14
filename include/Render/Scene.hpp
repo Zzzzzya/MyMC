@@ -54,8 +54,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     int mapZ = 40 * 8;
     vec3 ChunkSize = vec3(40, 20, 40);
     int CubeSize = 2.0f;
-    // shared_ptr<vector<vector<vector<shared_ptr<Cube>>>>> Map =
-    // make_shared<vector<vector<vector<shared_ptr<Cube>>>>>();
+
     shared_ptr<Map> map;
     vector<vector<vector<shared_ptr<Chunk>>>> Chunks;
 
@@ -74,8 +73,13 @@ class Scene : public std::enable_shared_from_this<Scene> {
     vector<Vertex> SelectedBlockVertices;
 
     Scene();
-    /*
+
+    /**
+     * @brief 初始化场景 - 依次调度所有初始化函数
      *
+     * @param cursorPosCallback
+     * @param scrollCallback
+     * TODO: 初始化分离，游戏选择页面 -> 新游戏再初始化
      */
     void InitScene(void (*cursorPosCallback)(GLFWwindow *, double, double) = nullptr,
                    void (*scrollCallback)(GLFWwindow *, double, double) = nullptr);
