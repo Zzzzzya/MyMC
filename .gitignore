@@ -6,3 +6,11 @@ CMakeUserPresets.json
 .clang-format
 log/
 *.
+Game/build/
+Game/examples/build/
+Game/CMakePresets.json
+Game/CMakeUserPresets.json
+Game/.vscode/
+Game/.clang-format
+Game/log/
+Game/*.
