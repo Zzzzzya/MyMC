@@ -84,6 +84,13 @@ void Shader::setHandle(const std::string &name, const GLuint64 &handle) {
     glUniformHandleui64ARB(loc, handle);
 }
 
+void Shader::setFog(const vec3 &fogColor, const float fogStart, const float fogEnd, const float fogDensity) {
+    this->setVec3("fogColor", fogColor);
+    this->setFloat("fogStart", fogStart);
+    this->setFloat("fogEnd", fogEnd);
+    this->setFloat("fogDensity", fogDensity);
+}
+
 // 如果没有几何着色器 只有顶点 + 片段
 void Shader::SetUpShader(const std::string &vertexName, const std::string &fragmentName,
                          const std::string &vertexDirectory, const std::string &fragmentDirectory) {

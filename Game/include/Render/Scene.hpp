@@ -50,11 +50,15 @@ class Scene : public std::enable_shared_from_this<Scene> {
     shared_ptr<Player> player = make_shared<Player>(vec3(20.0f, 100.0f, -20.0f));
 
     /* 地图 */
-    int mapX = 40 * 8;
-    int mapY = 20 * 10;
-    int mapZ = 40 * 8;
-    vec3 ChunkSize = vec3(40, 200, 40);
+    int mapX = 16 * 25;
+    int mapY = 200 * 1;
+    int mapZ = 16 * 25;
+    vec3 ChunkSize = vec3(16, 200, 16);
     int CubeSize = 2.0f;
+
+    int MAX_CHUNK_X = 25;
+    int MAX_CHUNK_Y = 1;
+    int MAX_CHUNK_Z = 25;
 
     shared_ptr<Map> map;
     vector<vector<vector<shared_ptr<Chunk>>>> Chunks;
@@ -80,6 +84,10 @@ class Scene : public std::enable_shared_from_this<Scene> {
     mat4 projection;
     float maxCullingDistance = 500.0f;
     Frustum frustum;
+
+    /* 可控类Setting */
+    bool bVSync = false;
+    float fogDensity = 0.01f;
 
     Scene();
 
