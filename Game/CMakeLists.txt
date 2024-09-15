@@ -41,7 +41,7 @@ target_link_libraries(MyMC PRIVATE unofficial::noise::noise)
 
 # 设置项目的版本号 (用于生成安装包)
 set(CPACK_PACKAGE_VERSION_MAJOR "0")
-set(CPACK_PACKAGE_VERSION_MINOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "2")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
@@ -53,19 +53,23 @@ set(CPACK_GENERATOR "ZIP")
 
 # 安装规则
 # 安装可执行文件到 bin 目录
-install(TARGETS MyMC DESTINATION bin)
+install(TARGETS MyMC DESTINATION MC)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION .)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/shaders DESTINATION .)
-install(FILES ${PROJECT_SOURCE_DIR}/build/fmtd.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/glew32d.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/glfw3.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/noise.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/spdlogd.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/spdlog.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/fmt.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/glew32.dll DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/imgui.ini DESTINATION bin)
-install(FILES ${PROJECT_SOURCE_DIR}/build/MyMC.pdb DESTINATION bin)
+install(FILES ${PROJECT_SOURCE_DIR}/build/fmtd.dll DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/glew32d.dll DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/glfw3.dll DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/noise.dll DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/spdlogd.dll DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/imgui.ini DESTINATION MC)
+install(FILES ${PROJECT_SOURCE_DIR}/build/MyMC.pdb DESTINATION MC)
+
+install(FILES ${PROJECT_SOURCE_DIR}/docs/refs/readme.md DESTINATION .)
+install(FILES ${PROJECT_SOURCE_DIR}/docs/refs/versions.md DESTINATION .)
+
+# install(FILES ${PROJECT_SOURCE_DIR}/build/spdlog.dll DESTINATION bin)
+# install(FILES ${PROJECT_SOURCE_DIR}/build/fmt.dll DESTINATION bin)
+# install(FILES ${PROJECT_SOURCE_DIR}/build/glew32.dll DESTINATION bin)
 
 # 打包配置
 include(CPack)
