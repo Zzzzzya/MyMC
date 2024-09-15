@@ -8,6 +8,7 @@
 #include "Mesh.hpp"
 #include "Player.hpp"
 #include "Map.hpp"
+#include "Frustum.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -74,6 +75,12 @@ class Scene : public std::enable_shared_from_this<Scene> {
     unsigned int SelectedBlockVAO, SelectedBlockVBO;
     vector<Vertex> SelectedBlockVertices;
 
+    /* Render相关 */
+    mat4 view;
+    mat4 projection;
+    float maxCullingDistance = 500.0f;
+    Frustum frustum;
+
     Scene();
 
     /**
@@ -101,6 +108,23 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     void CreatingNewGame();
     void MainRender();
+
+    /**
+     * @brief MainRender子函数集合
+     *
+     */
+    void SceneCulling(); // 场景剔除
+    void UpdateVP();
+    void CubeShaderDraw();
+    void SelectedBlockShaderDraw();
+    void SparkShaderDraw();
+
+    /**
+     * @brief 场景剔除子模块
+     *
+     */
+    bool DistanceCulling(Chunk &); // 距离剔除
+    bool FrustumCulling(Chunk &);  // 视锥剔除
 
     void ProcessKeyInput();
     void ProcessMovement();

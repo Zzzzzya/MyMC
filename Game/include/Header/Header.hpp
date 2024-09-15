@@ -17,6 +17,7 @@ using glm::mat3;
 using glm::mat4;
 using glm::vec2;
 using glm::vec3;
+using glm::vec4;
 
 using glm::radians;
 
@@ -47,6 +48,14 @@ inline int rand(int min, int max) {
     std::mt19937 gen(rd()); // 标准 mersenne_twister_engine
     std::uniform_int_distribution<> dis(min, max);
     return dis(gen);
+}
+
+inline float distance(const vec3 &a, const vec3 &b) {
+    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
+}
+
+inline float distance2(const vec3 &a, const vec3 &b) {
+    return pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2);
 }
 
 #include <thread>

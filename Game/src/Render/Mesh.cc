@@ -183,6 +183,8 @@ static inline mat4 getModel(int x, int y, int z, float CubeSize) {
 }
 
 void Chunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    if (isCulled)
+        return;
     if (vertices.size() == 0)
         return;
     glBindVertexArray(VAO);

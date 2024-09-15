@@ -50,7 +50,7 @@ void Scene::MainLoop() {
             CreatingNewGame();
         }
 
-        if (app.state == App::State::RUN)
+        if (app.state == App::State::RUN || app.state == App::State::PICTURE)
             MainRender();
 
         app.ImGuiRender();
@@ -101,83 +101,15 @@ void Scene::MainRender() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // MVPs
-    mat4 view = player->camera.ViewMat();
-    mat4 projection =
-        glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 1000.0f);
+    SceneCulling();
 
-    auto cubeShader = Shader::GetDefaultShader(0);
-    cubeShader->use();
-    cubeShader->setMat4("view", view);
-    cubeShader->setMat4("projection", projection);
+    UpdateVP();
 
-    int texNum = 0;
-    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        // glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
-        // cubeShader->setInt("tex2D[" + std::to_string(i) + "]", i);
-        cubeShader->setHandle("tex2D[" + std::to_string(i) + "]", Texture::DefaultTexture[i]->handle);
-        texNum++;
-    }
+    CubeShaderDraw();
 
-    for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i -
-        // texNum]->id); cubeShader->setInt("tex[" + std::to_string(i - texNum) +
-        // "]", i);
-        cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
-    }
+    SelectedBlockShaderDraw();
 
-    for (auto &rol : Chunks)
-        for (auto &cubes : rol)
-            for (auto &chunk : cubes) {
-                chunk->Draw(view, projection, 2.0f);
-            }
-
-    // 渲染选中物体
-    // TODO: 预选物体渲染抽离到函数
-    if (SelectedAnyBlock) {
-        if (SelectedBlockVertices.size() != 0) {
-            SelectedBlockVertices.clear();
-        }
-        if (SelectedBlockToDo.x < 0 || SelectedBlockToDo.y < 0 || SelectedBlockToDo.z < 0)
-            return;
-        auto cube = (*(map->_map))[SelectedBlockToDo.x][SelectedBlockToDo.y][SelectedBlockToDo.z];
-        auto WorldPos = vec3(SelectedBlockToDo.x, SelectedBlockToDo.y, -SelectedBlockToDo.z) * 2.0f;
-        cube->GenerateVertices(SelectedBlockVertices, WorldPos);
-        if (SelectedBlockVertices.size() != 0) {
-            glBindVertexArray(SelectedBlockVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
-            glBufferData(GL_ARRAY_BUFFER, SelectedBlockVertices.size() * sizeof(Vertex), &SelectedBlockVertices[0],
-                         GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-
-            auto shader = Shader::GetDefaultShader(2);
-            shader->use();
-            shader->setMat4("view", view);
-            shader->setMat4("projection", projection);
-            shader->setVec3("color", vec3(1.0f, 0.0f, 0.0f));
-            glBindVertexArray(SelectedBlockVAO);
-            glDrawArrays(GL_TRIANGLES, 0, SelectedBlockVertices.size());
-
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-        }
-    }
-
-    // 渲染光标
-    // TODO：光标渲染抽离到函数
-    glDisable(GL_DEPTH_TEST);
-    auto sparkShader = Shader::GetDefaultShader(1);
-    static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
-    sparkShader->use();
-    sparkShader->setMat4("model", sparkModel);
-    sparkShader->setHandle("spark", spark->handle);
-    glBindVertexArray(sparkVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    glEnable(GL_DEPTH_TEST);
+    SparkShaderDraw();
 }
 
 void Scene::DestroyScene() {
@@ -319,6 +251,138 @@ static inline bool KeyPressed(GLFWwindow *window, int key) {
     return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
+void Scene::SceneCulling() {
+    if (app.state == App::State::PICTURE)
+        return;
+
+    // 更新视锥体
+    frustum = Frustum(player->camera, (float)display_w / (float)display_h);
+
+    // 场景剔除
+    for (auto &rol : Chunks)
+        for (auto &cubes : rol)
+            for (auto &chunk : cubes) {
+                // 距离剔除 + 视锥剔除
+                chunk->isCulled = FrustumCulling(*chunk) || DistanceCulling(*chunk);
+            }
+}
+
+bool Scene::DistanceCulling(Chunk &chunk) {
+
+    vec3 WorldPos = chunk.pos * ChunkSize * 2.0f;
+    static auto i = ChunkSize.x / 2;
+    static auto j = ChunkSize.y / 2;
+    static auto k = ChunkSize.z / 2;
+    WorldPos.z = -WorldPos.z;
+    auto chunkCenter = WorldPos + vec3(i, j, -k) * 2.0f;
+
+    // Compute Z distance
+    vec4 ViewSpace = view * vec4(chunkCenter, 1.0f);
+
+    if (abs(ViewSpace.z) > maxCullingDistance)
+        return true;
+    else
+        return false;
+}
+
+bool Scene::FrustumCulling(Chunk &chunk) {
+    // AABB
+    vec3 WorldPos = chunk.pos * ChunkSize * 2.0f;
+    WorldPos.z = -WorldPos.z;
+    vec3 NextPos = WorldPos + vec3(ChunkSize.x, ChunkSize.y, -ChunkSize.z) * 2.0f;
+    AABB box(WorldPos, NextPos);
+
+    return !frustum.isAABBInFrustum(box);
+}
+
+void Scene::UpdateVP() {
+    // MVPs
+    view = player->camera.ViewMat();
+    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 1000.0f);
+}
+
+void Scene::CubeShaderDraw() {
+    auto cubeShader = Shader::GetDefaultShader(0);
+    cubeShader->use();
+    cubeShader->setMat4("view", view);
+    cubeShader->setMat4("projection", projection);
+
+    int texNum = 0;
+    for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
+        // glActiveTexture(GL_TEXTURE0 + i);
+        // glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        // cubeShader->setInt("tex2D[" + std::to_string(i) + "]", i);
+        cubeShader->setHandle("tex2D[" + std::to_string(i) + "]", Texture::DefaultTexture[i]->handle);
+        texNum++;
+    }
+
+    for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
+        // glActiveTexture(GL_TEXTURE0 + i);
+        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i -
+        // texNum]->id); cubeShader->setInt("tex[" + std::to_string(i - texNum) +
+        // "]", i);
+        cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
+    }
+
+    for (auto &rol : Chunks)
+        for (auto &cubes : rol)
+            for (auto &chunk : cubes) {
+                chunk->Draw(view, projection, 2.0f);
+            }
+}
+
+void Scene::SelectedBlockShaderDraw() {
+    if (app.state == App::State::PICTURE)
+        return;
+
+    // 渲染选中物体
+    // TODO: 预选物体渲染抽离到函数
+    if (SelectedAnyBlock) {
+        if (SelectedBlockVertices.size() != 0) {
+            SelectedBlockVertices.clear();
+        }
+        if (SelectedBlockToDo.x < 0 || SelectedBlockToDo.y < 0 || SelectedBlockToDo.z < 0)
+            return;
+        auto cube = (*(map->_map))[SelectedBlockToDo.x][SelectedBlockToDo.y][SelectedBlockToDo.z];
+        auto WorldPos = vec3(SelectedBlockToDo.x, SelectedBlockToDo.y, -SelectedBlockToDo.z) * 2.0f;
+        cube->GenerateVertices(SelectedBlockVertices, WorldPos);
+        if (SelectedBlockVertices.size() != 0) {
+            glBindVertexArray(SelectedBlockVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
+            glBufferData(GL_ARRAY_BUFFER, SelectedBlockVertices.size() * sizeof(Vertex), &SelectedBlockVertices[0],
+                         GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+
+            auto shader = Shader::GetDefaultShader(2);
+            shader->use();
+            shader->setMat4("view", view);
+            shader->setMat4("projection", projection);
+            shader->setVec3("color", vec3(1.0f, 0.0f, 0.0f));
+            glBindVertexArray(SelectedBlockVAO);
+            glDrawArrays(GL_TRIANGLES, 0, SelectedBlockVertices.size());
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        }
+    }
+}
+
+void Scene::SparkShaderDraw() {
+    // 渲染光标
+    // TODO：光标渲染抽离到函数
+    glDisable(GL_DEPTH_TEST);
+    auto sparkShader = Shader::GetDefaultShader(1);
+    static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
+    sparkShader->use();
+    sparkShader->setMat4("model", sparkModel);
+    sparkShader->setHandle("spark", spark->handle);
+    glBindVertexArray(sparkVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);
+}
+
 void Scene::ProcessKeyInput() {
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -359,6 +423,13 @@ void Scene::ProcessKeyInput() {
         app.state = App::State::SETTING;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         cursorInWindow = false;
+    }
+
+    if (KeyPressed(window, GLFW_KEY_P)) {
+        if (app.state == App::State::RUN)
+            app.state = App::State::PICTURE;
+        else if (app.state == App::State::PICTURE)
+            app.state = App::State::RUN;
     }
 }
 

@@ -98,6 +98,7 @@ class Chunk {
     vec3 size;
     shared_ptr<Map> map;
     vector<Vertex> vertices;
+    bool isCulled = false; // 是否被剔除
     void GenerateMesh();
     void setupBuffer();
     void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);

@@ -16,6 +16,7 @@ class App {
         RUN,
         SETTING,
         WAITING,
+        PICTURE // 拍照模式
     };
 
     State state = State::INIT;
@@ -32,6 +33,7 @@ class App {
     void Run();
     void Waiting();
     void CreatingNewGame();
+    void Picture();
 };
 
 #endif

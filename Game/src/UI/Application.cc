@@ -27,6 +27,9 @@ void App::PrepareRender() {
     case State::CREATING_NEW_GAME:
         CreatingNewGame();
         break;
+    case State::PICTURE:
+        Picture();
+        break;
     default:
         break;
     }
@@ -130,5 +133,10 @@ void App::CreatingNewGame() {
     }
 
     // ImGui::PopStyleVar();
+    ImGui::End();
+}
+
+void App::Picture() {
+    ImGui::Begin("Picture Mode");
     ImGui::End();
 }
