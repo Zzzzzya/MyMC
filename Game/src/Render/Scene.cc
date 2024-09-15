@@ -428,7 +428,10 @@ void Scene::ProcessKeyInput() {
     if (KeyPressed(window, GLFW_KEY_P)) {
         if (app.state == App::State::RUN)
             app.state = App::State::PICTURE;
-        else if (app.state == App::State::PICTURE)
+    }
+
+    if (KeyPressed(window, GLFW_KEY_O)) {
+        if (app.state == App::State::PICTURE)
             app.state = App::State::RUN;
     }
 }
