@@ -32,12 +32,13 @@ void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
 
 vector<Vertex> Cube::CubeVertice = {
     // 右面
-    {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
-    {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
     {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+    {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+    {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
     // 左面
     {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
@@ -46,11 +47,11 @@ vector<Vertex> Cube::CubeVertice = {
     {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
     {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
     // 上面
-    {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
     {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
-    {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
     {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
     {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+    {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+    {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
     {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
     // 下面
     {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
@@ -67,11 +68,11 @@ vector<Vertex> Cube::CubeVertice = {
     {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
     {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
     // 后面
-    {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
-    {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
     {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
+    {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
+    {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
     {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
 };
 
@@ -107,7 +108,21 @@ vector<Vertex> CrossQuad::CrossQuadVertice = {
     {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
     {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
     {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+    {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}},
+    {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+    {{1.0f, 1.0f, -1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f}},
+    {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
     // 左下右上
+    {{1.0f, -1.0f, 1.0f}, {1.0f, 0.0f}},
+    {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+    {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+    {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+    {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
+    {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f}},
+
     {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}},
     {{1.0f, -1.0f, 1.0f}, {1.0f, 0.0f}},
     {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
@@ -119,7 +134,7 @@ vector<Vertex> CrossQuad::CrossQuadVertice = {
 void CrossQuad::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
     for (int p = 0; p < 6; p++) {
         if (Exposed[p] == true) {
-            for (int q = 0; q < 12; q++) {
+            for (int q = 0; q < 24; q++) {
                 Vertex vertex = CrossQuadVertice[q];
                 vertex.CubeMapTex = vertex.position;
                 vertex.position += WorldPos;
@@ -187,6 +202,7 @@ void Chunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
         return;
     if (vertices.size() == 0)
         return;
+
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
     glBindVertexArray(0);
