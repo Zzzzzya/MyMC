@@ -51,9 +51,9 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     /* 地图 */
     int mapX = 16 * 25;
-    int mapY = 200 * 1;
+    int mapY = 100 * 1;
     int mapZ = 16 * 25;
-    vec3 ChunkSize = vec3(16, 200, 16);
+    vec3 ChunkSize = vec3(16, 100, 16);
     int CubeSize = 2.0f;
 
     int MAX_CHUNK_X = 25;
@@ -84,6 +84,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     mat4 projection;
     float maxCullingDistance = 500.0f;
     Frustum frustum;
+    ScreenQuad screenQuad;
 
     /* 可控类Setting */
     bool bVSync = false;

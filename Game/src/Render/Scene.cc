@@ -107,6 +107,12 @@ void Scene::MainRender() {
 
     CubeShaderDraw();
 
+    auto SkyShader = Shader::GetDefaultShader(3);
+    glDepthFunc(GL_LEQUAL);
+    SkyShader->use();
+    screenQuad.Draw();
+    glDepthFunc(GL_LESS);
+
     SelectedBlockShaderDraw();
 
     SparkShaderDraw();
@@ -172,6 +178,8 @@ int Scene::InitRender() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    // screenQuad
+    screenQuad.init();
     return 0;
 }
 

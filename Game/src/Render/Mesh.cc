@@ -191,6 +191,10 @@ void Chunk::setupBuffer() {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    verSize = vertices.size();
+    vertices.clear();
+    vertices.resize(0);
 }
 
 static inline mat4 getModel(int x, int y, int z, float CubeSize) {
@@ -200,11 +204,11 @@ static inline mat4 getModel(int x, int y, int z, float CubeSize) {
 void Chunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
     if (isCulled)
         return;
-    if (vertices.size() == 0)
+    if (verSize == 0)
         return;
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glDrawArrays(GL_TRIANGLES, 0, verSize);
     glBindVertexArray(0);
 }
 
@@ -219,4 +223,42 @@ void Chunk::init() {
 
     // Buffer 设置
     setupBuffer();
+}
+
+ScreenQuad::ScreenQuad() {
+}
+
+void ScreenQuad::init() {
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    GenerateMesh();
+
+    setupBuffer();
+}
+
+void ScreenQuad::GenerateMesh() {
+    for (auto &ver : Quad::QuadVertice) {
+        vec2 pos{ver.position.x, ver.position.y};
+        vec2 tex{ver.texCoords.x, ver.texCoords.y};
+        vertices.push_back({pos, tex});
+    }
+}
+
+void ScreenQuad::setupBuffer() {
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex2D), &vertices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)0);
+
+    glBindVertexArray(0);
+}
+
+void ScreenQuad::Draw() {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
 }
