@@ -120,6 +120,16 @@ class CloudChunk {
     void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
 };
 
+class SunChunk {
+  public:
+    unsigned int SunVAO, SunVBO;
+    vector<Vertex> SunVertices;
+    int SunVersize = 0;
+    void init();
+    void setupBuffer();
+    void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
+};
+
 class ScreenQuad {
   public:
     ScreenQuad();

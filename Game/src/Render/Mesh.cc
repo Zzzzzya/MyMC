@@ -208,7 +208,7 @@ static inline mat4 getModel(int x, int y, int z, float CubeSize) {
 }
 
 void Chunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
-    if (isCulled)
+    if (int(CubeMap) == 1 && isCulled)
         return;
     if (verSize != 0) {
         glBindVertexArray(VAO);
@@ -302,6 +302,34 @@ void CloudChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
     if (CloudVersize != 0) {
         glBindVertexArray(CloudVAO);
         glDrawArrays(GL_TRIANGLES, 0, CloudVersize);
+        glBindVertexArray(0);
+    }
+}
+
+void SunChunk::init() {
+    glGenVertexArrays(1, &SunVAO);
+    glGenBuffers(1, &SunVBO);
+}
+
+void SunChunk::setupBuffer() {
+
+    glBindVertexArray(SunVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, SunVBO);
+    glBufferData(GL_ARRAY_BUFFER, Cube::CubeVertice.size() * sizeof(Vertex), &Cube::CubeVertice[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    SunVersize = Cube::CubeVertice.size();
+}
+
+void SunChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    if (SunVersize != 0) {
+        glBindVertexArray(SunVAO);
+        glDrawArrays(GL_TRIANGLES, 0, SunVersize);
         glBindVertexArray(0);
     }
 }

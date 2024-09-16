@@ -15,6 +15,8 @@ void Shader::setUpDefaultShaders() {
     DefaultShader.push_back(make_shared<Shader>("border.vs", "border.fs"));
     DefaultShader.push_back(make_shared<Shader>("Sky.vs", "Sky.fs"));
     DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeCloud.fs"));
+    DefaultShader.push_back(make_shared<Shader>("shadowMap.vs", "shadowMap.fs"));
+    DefaultShader.push_back(make_shared<Shader>("Sun.vs", "Sun.fs"));
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {

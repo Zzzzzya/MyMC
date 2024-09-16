@@ -88,8 +88,9 @@ void Texture::loadTexture(const std::string &filename, const std::string &direct
     setTexParam();
 
     stbi_image_free(data);
-    handle = glGetTextureHandleARB(textureID);
-    glMakeTextureHandleResidentARB(handle);
+
+    // handle = glGetTextureHandleARB(textureID);
+    // glMakeTextureHandleResidentARB(handle);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     return;
@@ -134,8 +135,8 @@ void CubeMap::loadCubeMap(const std::vector<std::string> &faces, const std::stri
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-    handle = glGetTextureHandleARB(textureID);
-    glMakeTextureHandleResidentARB(handle);
+    // handle = glGetTextureHandleARB(textureID);
+    // glMakeTextureHandleResidentARB(handle);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     id = textureID;
 }
