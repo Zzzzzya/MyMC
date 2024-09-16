@@ -107,11 +107,16 @@ void Scene::MainRender() {
 
     CubeShaderDraw();
 
+    glDisable(GL_CULL_FACE);
     auto SkyShader = Shader::GetDefaultShader(3);
     glDepthFunc(GL_LEQUAL);
     SkyShader->use();
+    SkyShader->setMat4("view", mat4(glm::mat3(view))); // remove translation
+    SkyShader->setMat4("projection", projection);
+    SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
     screenQuad.Draw();
     glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 
     SelectedBlockShaderDraw();
 

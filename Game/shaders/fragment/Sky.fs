@@ -1,10 +1,11 @@
 #version 450 core
 
-in vec2 TexCoords;
+in vec3 TexCoords;
 
 out vec4 SkyColor;
 
+uniform samplerCube Sky;
+
 void main() {
-    vec4 BlueSky = vec4(0.53, 0.81, 0.98, 1.0);
-    SkyColor = mix(BlueSky, vec4(1.0, 1.0, 1.0, 1.0), 1 - TexCoords.y);
+    SkyColor = vec4(texture(Sky, TexCoords, 1.0).rgb, 1.0f);
 }

@@ -112,7 +112,7 @@ class ScreenQuad {
   public:
     ScreenQuad();
     unsigned int VAO, VBO;
-    vector<Vertex2D> vertices;
+    vector<Vertex> vertices;
     void init();
     void Draw();
 

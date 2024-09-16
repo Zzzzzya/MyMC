@@ -88,7 +88,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
 
     /* 可控类Setting */
     bool bVSync = false;
-    float fogDensity = 0.01f;
+    float fogDensity = 0.003f;
 
     Scene();
 

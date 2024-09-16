@@ -44,6 +44,9 @@ void CubeMap::setUpDefaultCubeMaps() {
     setUpDefaultCubeMapsHelper("Leaves");
     // 6
     setUpDefaultCubeMapsHelper("Diamond");
+
+    // last one - skybox
+    setUpDefaultCubeMapsHelper("SkyBox");
 }
 shared_ptr<CubeMap> CubeMap::GetDefaultCubeMap(int i) {
     return CubeMap::DefaultCubeMaps[i];
