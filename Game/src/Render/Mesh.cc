@@ -155,7 +155,9 @@ Chunk::Chunk(const shared_ptr<Map> &Map, vec3 position, vec3 size) : map(Map), p
 void Chunk::GenerateMesh() {
     if (vertices.size() != 0) {
         vertices.clear();
+        vertices.resize(0);
     }
+
     auto logger = Loggers::getLogger("Chunk");
     vec3 WorldPos = pos * size * 2.0f;
     WorldPos.z = -WorldPos.z;
@@ -167,34 +169,38 @@ void Chunk::GenerateMesh() {
                 auto &mesh = (*mapMap)[i + pos.x * size.x][j + pos.y * size.y][k + pos.z * size.z];
                 if (mesh == nullptr || mesh->ID() == 0)
                     continue;
+                if (mesh->ID() == CB_CLOUD) {
+                    mesh->GenerateVertices(map->cloudChunk.CloudVertices, WorldPos + vec3(i, j, -k) * 2.0f);
+                    continue;
+                }
                 mesh->GenerateVertices(vertices, WorldPos + vec3(i, j, -k) * 2.0f);
             }
 }
 
 void Chunk::setupBuffer() {
-    if (vertices.size() == 0)
-        return;
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    if (vertices.size() != 0) {
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
-    glEnableVertexAttribArray(2);
-    glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
-    glEnableVertexAttribArray(3);
-    glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+        glEnableVertexAttribArray(2);
+        glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+        glEnableVertexAttribArray(3);
+        glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
 
-    verSize = vertices.size();
-    vertices.clear();
-    vertices.resize(0);
+        verSize = vertices.size();
+        vertices.clear();
+        vertices.resize(0);
+    }
 }
 
 static inline mat4 getModel(int x, int y, int z, float CubeSize) {
@@ -204,12 +210,11 @@ static inline mat4 getModel(int x, int y, int z, float CubeSize) {
 void Chunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
     if (isCulled)
         return;
-    if (verSize == 0)
-        return;
-
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, verSize);
-    glBindVertexArray(0);
+    if (verSize != 0) {
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, verSize);
+        glBindVertexArray(0);
+    }
 }
 
 void Chunk::init() {
@@ -217,6 +222,9 @@ void Chunk::init() {
     // VAO VBO 生成
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+
+    glGenVertexArrays(1, &CloudVAO);
+    glGenBuffers(1, &CloudVBO);
 
     // Buffer 生成
     GenerateMesh();
@@ -260,4 +268,40 @@ void ScreenQuad::Draw() {
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
     glBindVertexArray(0);
+}
+
+void CloudChunk::setupBuffer() {
+    glGenVertexArrays(1, &CloudVAO);
+    glGenBuffers(1, &CloudVBO);
+    if (CloudVertices.size() != 0) {
+        glBindVertexArray(CloudVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, CloudVBO);
+        glBufferData(GL_ARRAY_BUFFER, CloudVertices.size() * sizeof(Vertex), &CloudVertices[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+        glEnableVertexAttribArray(2);
+        glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+        glEnableVertexAttribArray(3);
+        glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        CloudVersize = CloudVertices.size();
+        CloudVertices.clear();
+        CloudVertices.resize(0);
+    }
+}
+
+void CloudChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    if (CloudVersize != 0) {
+        glBindVertexArray(CloudVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CloudVersize);
+        glBindVertexArray(0);
+    }
 }

@@ -107,16 +107,9 @@ void Scene::MainRender() {
 
     CubeShaderDraw();
 
-    glDisable(GL_CULL_FACE);
-    auto SkyShader = Shader::GetDefaultShader(3);
-    glDepthFunc(GL_LEQUAL);
-    SkyShader->use();
-    SkyShader->setMat4("view", mat4(glm::mat3(view))); // remove translation
-    SkyShader->setMat4("projection", projection);
-    SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
-    screenQuad.Draw();
-    glDepthFunc(GL_LESS);
-    glEnable(GL_CULL_FACE);
+    CloudDraw();
+
+    SkyDraw();
 
     SelectedBlockShaderDraw();
 
@@ -216,6 +209,7 @@ int Scene::InitMap() {
                 Chunks[i][j][k] = make_shared<Chunk>(map, position, ChunkSize);
             }
 
+    map->cloudChunk.setupBuffer();
     return 0;
 }
 
@@ -346,6 +340,30 @@ void Scene::CubeShaderDraw() {
             for (auto &chunk : cubes) {
                 chunk->Draw(view, projection, 2.0f);
             }
+}
+
+void Scene::CloudDraw() {
+    auto cloudShader = Shader::GetDefaultShader(4);
+    cloudShader->use();
+    cloudShader->setMat4("view", view);
+    cloudShader->setMat4("projection", projection);
+
+    cloudShader->setHandle("tex", CubeMap::CloudCubeMap->handle);
+
+    map->cloudChunk.Draw(view, projection, 2.0f);
+}
+
+void Scene::SkyDraw() {
+    glDisable(GL_CULL_FACE);
+    auto SkyShader = Shader::GetDefaultShader(3);
+    glDepthFunc(GL_LEQUAL);
+    SkyShader->use();
+    SkyShader->setMat4("view", mat4(glm::mat3(view))); // remove translation
+    SkyShader->setMat4("projection", projection);
+    SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
+    screenQuad.Draw();
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 void Scene::SelectedBlockShaderDraw() {

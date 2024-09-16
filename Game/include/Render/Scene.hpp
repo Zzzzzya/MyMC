@@ -125,6 +125,8 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void SceneCulling(); // 场景剔除
     void UpdateVP();
     void CubeShaderDraw();
+    void CloudDraw();
+    void SkyDraw();
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
 

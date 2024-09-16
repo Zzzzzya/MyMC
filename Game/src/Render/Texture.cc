@@ -24,6 +24,9 @@ shared_ptr<Texture> Texture::GetDefaultTexture(int i) {
     return Texture::DefaultTexture[i];
 }
 
+/* Spec CubeMaps */
+shared_ptr<CubeMap> CubeMap::CloudCubeMap = nullptr;
+
 /* Default CubeMaps */
 vector<shared_ptr<CubeMap>> CubeMap::DefaultCubeMaps = {};
 static void setUpDefaultCubeMapsHelper(const std::string &CubeName) {
@@ -47,6 +50,8 @@ void CubeMap::setUpDefaultCubeMaps() {
 
     // last one - skybox
     setUpDefaultCubeMapsHelper("SkyBox");
+
+    CloudCubeMap = make_shared<CubeMap>(filename, path + "Cloud");
 }
 shared_ptr<CubeMap> CubeMap::GetDefaultCubeMap(int i) {
     return CubeMap::DefaultCubeMaps[i];

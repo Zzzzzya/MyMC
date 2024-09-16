@@ -112,6 +112,9 @@ void Map::generateMap() {
     // 目前顺序 : 树木 -> 地表草
     GenerateTrees();
     GenerateGrass();
+
+    // Step4 : 生成云朵
+    // GenerateClouds();
 }
 
 // Init Step 3 : Set the Expose attribute of each cube
@@ -177,7 +180,7 @@ void Map::GenerateSurface() {
             double x = (double)i / mapX;
             double z = (double)k / mapZ;
             // double height = perlinNoise.GetValue(x, z);
-            // double height = perlinNoise.GenerateTerrain(x, z);
+
             double value1 = noiseLayer1.GenerateTerrain(x, z);
             double value2 = noiseLayer2.GenerateTerrain(x, z);
             double value3 = noiseLayer3.GenerateTerrain(x, z);
@@ -185,7 +188,10 @@ void Map::GenerateSurface() {
             // 组合噪声值
             double height = (value1 + value2 + value3) / 3.0;
             int earthLine = bedRockHeight + stoneHeight + dirtHeight;
-            int y = (int)(height * 40);
+
+            bool bCloud = perlinNoise.GenerateTerrain(x, z) > 0.5;
+
+            int y = (int)((height - 0.05) * 40);
 
             int maxHeight = std::min(mapY, earthLine + y);
 
@@ -193,6 +199,13 @@ void Map::GenerateSurface() {
             heightMap[i][k] = maxHeight - 1; // 草方格高度
             for (int j = maxHeight - 2; j >= earthLine; j--) {
                 map[i][j][k]->ID() = CB_DIRT_BLOCK;
+            }
+
+            for (int j = 34; j >= maxHeight; j--) {
+                map[i][j][k]->ID() = CB_DIAMOND;
+            }
+            if (bCloud) {
+                map[i][88][k]->ID() = CB_CLOUD;
             }
         }
 }
@@ -209,6 +222,9 @@ void Map::GenerateTrees() {
                 int treeHeight = rand(7, 9);
                 int x = i + rand(0, 19);
                 int z = k + rand(0, 19);
+                if (rand(1, 100) < 90) {
+                    continue;
+                }
                 if (x >= mapX || z >= mapZ)
                     continue;
                 int y = heightMap[x][z];
@@ -228,12 +244,15 @@ void Map::GenerateGrass() {
     for (int i = 0; i < mapX; i++)
         for (int k = 0; k < mapZ; k++) {
             int y = heightMap[i][k];
-            if (map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY && map[i][y + 1][k]->ID() == QD_EMPTY &&
-                rand(0, 100) < 10) {
+            if (rand(0, 100) < 10 && map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY &&
+                map[i][y + 1][k]->ID() == QD_EMPTY) {
                 map[i][y + 1][k] = make_shared<CrossQuad>();
                 map[i][y + 1][k]->ID() = QD_GRASS;
             }
         }
+}
+
+void Map::GenerateClouds() {
 }
 
 // 周围一格内的坐标

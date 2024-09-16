@@ -37,6 +37,7 @@ class CubeMap {
     static vector<shared_ptr<CubeMap>> DefaultCubeMaps;
     static void setUpDefaultCubeMaps();
     static shared_ptr<CubeMap> GetDefaultCubeMap(int i);
+    static shared_ptr<CubeMap> CloudCubeMap;
 
   private:
     void loadCubeMap(const std::vector<std::string> &paths, const std::string &directory);
