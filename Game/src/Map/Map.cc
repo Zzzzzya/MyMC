@@ -1,7 +1,11 @@
 #include "Map.hpp"
 
 Map::Map(vec3 mapSize, int seed)
-    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Mesh>>>>>()), seed(seed) {
+    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Mesh>>>>>()), seed(seed),
+      noiseLayer1(1.0, 1.5, 2.0, 3), // 低频高振幅
+      noiseLayer2(2.0, 0.8, 2.0, 3), // 中频中振幅
+      noiseLayer3(4.0, 0.3, 2.0, 3)  // 高频低振幅
+{
 }
 
 void Map::InitMap() {
@@ -173,7 +177,13 @@ void Map::GenerateSurface() {
             double x = (double)i / mapX;
             double z = (double)k / mapZ;
             // double height = perlinNoise.GetValue(x, z);
-            double height = perlinNoise.GenerateTerrain(x, z);
+            // double height = perlinNoise.GenerateTerrain(x, z);
+            double value1 = noiseLayer1.GenerateTerrain(x, z);
+            double value2 = noiseLayer2.GenerateTerrain(x, z);
+            double value3 = noiseLayer3.GenerateTerrain(x, z);
+
+            // 组合噪声值
+            double height = (value1 + value2 + value3) / 3.0;
             int earthLine = bedRockHeight + stoneHeight + dirtHeight;
             int y = (int)(height * 40);
 

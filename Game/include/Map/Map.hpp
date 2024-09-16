@@ -57,6 +57,9 @@ class Map {
     int stoneHeight = 20;
     int dirtHeight = 5;
     PerlinNoise2D perlinNoise;
+    PerlinNoise2D noiseLayer1;
+    PerlinNoise2D noiseLayer2;
+    PerlinNoise2D noiseLayer3;
     vector<vector<int>> heightMap;
 
     void InitMap();
