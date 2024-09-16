@@ -10,11 +10,13 @@ out vec3 TexCoordsCubeMap;
 out vec2 TexCoords;
 flat out int index;
 flat out int meshType;
+out vec3 FragPos;
 
 uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
+    FragPos = aPos;
     gl_Position = projection * view * vec4(aPos, 1.0f);
     index = aCubeID - 1;
     meshType = aFaceID;

@@ -36,6 +36,7 @@ class Shader {
     // Uniforms
     void setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::mat4 &projection);
     void setHandle(const std::string &name, const GLuint64 &handle);
+    void setFog(const vec3 &fogColor, const float fogStart, const float fogEnd, const float fogDensity);
 
     // Shaders
     static vector<shared_ptr<Shader>> DefaultShader;

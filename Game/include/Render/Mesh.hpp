@@ -96,6 +96,7 @@ class Chunk {
     unsigned int VAO, VBO;
     vec3 pos;
     vec3 size;
+    int verSize = 0;
     shared_ptr<Map> map;
     vector<Vertex> vertices;
     bool isCulled = false; // 是否被剔除
@@ -105,6 +106,19 @@ class Chunk {
 
   private:
     void init();
+};
+
+class ScreenQuad {
+  public:
+    ScreenQuad();
+    unsigned int VAO, VBO;
+    vector<Vertex2D> vertices;
+    void init();
+    void Draw();
+
+  private:
+    void GenerateMesh();
+    void setupBuffer();
 };
 
 // 方块序号宏定义 - 参见Cube.md

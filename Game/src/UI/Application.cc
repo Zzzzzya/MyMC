@@ -39,7 +39,7 @@ void App::PrepareRender() {
 
     glfwGetFramebufferSize(scene->window, &scene->display_w, &scene->display_h);
     glViewport(0, 0, scene->display_w, scene->display_h);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -86,6 +86,40 @@ void App::Init() {
 }
 
 void App::Setting() {
+    // 创建一个窗口
+    ImGui::Begin("Setting Window");
+    ImGui::Text("FPS: %.1f", scene->fps);
+    // 创建一个无边框按钮
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
+    /**
+     * @brief 主界面渲染逻辑
+     * @button Continue Game 继续游戏
+     *
+     */
+    if (ImGui::Button("Continue Game!")) {
+        state = State::RUN;
+        glfwSetInputMode(scene->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        scene->cursorInWindow = true;
+    }
+    ImGui::PopStyleVar();
+
+    /**
+     * @brief 调节Scene中的参数
+     *
+     */
+
+    // 1. 是否开启垂直同步
+    ImGui::Checkbox("VSync", &scene->bVSync);
+    glfwSwapInterval(scene->bVSync);
+
+    // 2. 雾效设置
+    ImGui::SliderFloat("fogDensity", &scene->fogDensity, 0.0f, 0.1f);
+
+    if (ImGui::Button("Back")) {
+        state = State::WAITING;
+    }
+    ImGui::End();
 }
 
 void App::Run() {
@@ -119,6 +153,10 @@ void App::Waiting() {
         scene->cursorInWindow = true;
     }
     ImGui::PopStyleVar();
+
+    if (ImGui::Button("Settings")) {
+        state = State::SETTING;
+    }
     ImGui::End();
 }
 

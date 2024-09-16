@@ -13,6 +13,7 @@ void Shader::setUpDefaultShaders() {
     DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeMap.fs"));
     DefaultShader.push_back(make_shared<Shader>("spark.vs", "spark.fs"));
     DefaultShader.push_back(make_shared<Shader>("border.vs", "border.fs"));
+    DefaultShader.push_back(make_shared<Shader>("Sky.vs", "Sky.fs"));
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {
@@ -82,6 +83,13 @@ void Shader::setMVPS(const glm::mat4 &model, const glm::mat4 &view, const glm::m
 void Shader::setHandle(const std::string &name, const GLuint64 &handle) {
     auto loc = glGetUniformLocation(pro, name.c_str());
     glUniformHandleui64ARB(loc, handle);
+}
+
+void Shader::setFog(const vec3 &fogColor, const float fogStart, const float fogEnd, const float fogDensity) {
+    this->setVec3("fogColor", fogColor);
+    this->setFloat("fogStart", fogStart);
+    this->setFloat("fogEnd", fogEnd);
+    this->setFloat("fogDensity", fogDensity);
 }
 
 // 如果没有几何着色器 只有顶点 + 片段

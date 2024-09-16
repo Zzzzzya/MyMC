@@ -98,7 +98,7 @@ void Scene::CreatingNewGame() {
 void Scene::MainRender() {
     /* Main Render 真正渲染场景的地方 */
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     SceneCulling();
@@ -106,6 +106,12 @@ void Scene::MainRender() {
     UpdateVP();
 
     CubeShaderDraw();
+
+    auto SkyShader = Shader::GetDefaultShader(3);
+    glDepthFunc(GL_LEQUAL);
+    SkyShader->use();
+    screenQuad.Draw();
+    glDepthFunc(GL_LESS);
 
     SelectedBlockShaderDraw();
 
@@ -134,7 +140,7 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     if (window == NULL)
         return -1;
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable vsync
+    glfwSwapInterval(bVSync); // Enable vsync
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     glfwSetCursorPosCallback(window, cursorPosCallback);
@@ -153,6 +159,7 @@ int Scene::InitRender() {
 
     // 渲染初始化参数设置
     glEnable(GL_DEPTH_TEST); // 开启深度测试
+    glEnable(GL_CULL_FACE);  // 开启背面剔除
 
     // 选中物体渲染设置
     glGenVertexArrays(1, &SelectedBlockVAO);
@@ -171,6 +178,8 @@ int Scene::InitRender() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    // screenQuad
+    screenQuad.init();
     return 0;
 }
 
@@ -191,9 +200,9 @@ int Scene::InitMap() {
 
     // 初始化Chunk
     auto logger = Loggers::getLogger("Scene");
-    int ChunkX = mapX / ChunkSize.x;
-    int ChunkY = mapY / ChunkSize.y;
-    int ChunkZ = mapZ / ChunkSize.z;
+    int ChunkX = MAX_CHUNK_X;
+    int ChunkY = MAX_CHUNK_Y;
+    int ChunkZ = MAX_CHUNK_Z;
     Chunks.resize(ChunkX, vector<vector<shared_ptr<Chunk>>>(ChunkY, vector<shared_ptr<Chunk>>(ChunkZ)));
     for (int i = 0; i < ChunkX; i++)
         for (int j = 0; j < ChunkY; j++)
@@ -323,6 +332,9 @@ void Scene::CubeShaderDraw() {
         // "]", i);
         cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
     }
+
+    cubeShader->setVec3("cameraPos", player->camera.position);
+    cubeShader->setFog(vec3(1.0f, 1.0f, 1.0f), 300.0f, 1000.0f, fogDensity);
 
     for (auto &rol : Chunks)
         for (auto &cubes : rol)
