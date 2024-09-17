@@ -62,6 +62,7 @@ class Map {
     PerlinNoise2D noiseLayer3;
     vector<vector<int>> heightMap;
 
+    WaterChunk waterChunk;
     CloudChunk cloudChunk;
 
     void InitMap();

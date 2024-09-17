@@ -135,6 +135,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void UpdateVP();
     void ShadowMapDraw();
     void CubeShaderDraw();
+    void WaterDraw();
     void CloudDraw();
     void SkyDraw();
     void SunDraw();

@@ -173,6 +173,10 @@ void Chunk::GenerateMesh() {
                     mesh->GenerateVertices(map->cloudChunk.CloudVertices, WorldPos + vec3(i, j, -k) * 2.0f);
                     continue;
                 }
+                if (mesh->ID() == CB_WATER) {
+                    mesh->GenerateVertices(map->waterChunk.WaterVertices, WorldPos + vec3(i, j, -k) * 2.0f);
+                    continue;
+                }
                 mesh->GenerateVertices(vertices, WorldPos + vec3(i, j, -k) * 2.0f);
             }
 }
@@ -330,6 +334,41 @@ void SunChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
     if (SunVersize != 0) {
         glBindVertexArray(SunVAO);
         glDrawArrays(GL_TRIANGLES, 0, SunVersize);
+        glBindVertexArray(0);
+    }
+}
+
+void WaterChunk::init() {
+    glGenVertexArrays(1, &WaterVAO);
+    glGenBuffers(1, &WaterVBO);
+}
+
+void WaterChunk::setupBuffer() {
+    glBindVertexArray(WaterVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
+    glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    WaterVersize = WaterVertices.size();
+}
+
+void WaterChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    if (WaterVersize != 0) {
+        glBindVertexArray(WaterVAO);
+        glDrawArrays(GL_TRIANGLES, 0, WaterVersize);
         glBindVertexArray(0);
     }
 }

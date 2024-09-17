@@ -34,7 +34,7 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
         return false;
     }
     auto &map = *(this->_map);
-    if (map[blockPos.x][blockPos.y][blockPos.z]->ID() != 0)
+    if (!map[blockPos.x][blockPos.y][blockPos.z]->Passed())
         return true;
     return false;
 }
@@ -58,7 +58,7 @@ bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {
     // Check the collision with the map
     // position wants to move as movVec
     vec3 newPos = position + movVec;
-    vec3 newPos2 = position - vec3(0.0f, 2.0f, 0.0f) + movVec;
+    vec3 newPos2 = position - vec3(0.0f, 3.0f, 0.0f) + movVec;
     auto blockPos = GetBlockCoords(newPos);
     auto blockPos2 = GetBlockCoords(newPos2);
     if (!CheckCollisionHelper(blockPos) || !CheckCollisionHelper(blockPos2))
@@ -137,13 +137,16 @@ void Map::setExposed() {
                     int nx = i + dx[p];
                     int ny = j + dy[p];
                     int nz = k + dz[p];
+
                     // If the cube is on the edge of the map or the cube is exposed
-                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ ||
-                        !map[nx][ny][nz]->Occluded()) {
+                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
                         map[i][j][k]->Exposed[p] = true;
                     }
                     else {
-                        map[i][j][k]->Exposed[p] = false;
+                        if (map[i][j][k]->ID() == CB_WATER)
+                            map[i][j][k]->Exposed[p] = map[nx][ny][nz]->ID() == 0;
+                        else
+                            map[i][j][k]->Exposed[p] = !map[nx][ny][nz]->Occluded();
                     }
                 }
             }
@@ -202,7 +205,7 @@ void Map::GenerateSurface() {
             }
 
             for (int j = 34; j >= maxHeight; j--) {
-                map[i][j][k]->ID() = CB_DIAMOND;
+                map[i][j][k]->ID() = CB_WATER;
             }
             if (bCloud) {
                 map[i][88][k]->ID() = CB_CLOUD;

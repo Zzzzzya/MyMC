@@ -114,6 +114,8 @@ void Scene::MainRender() {
 
     CubeShaderDraw();
 
+    WaterDraw();
+
     SunDraw();
 
     CloudDraw();
@@ -228,6 +230,10 @@ int Scene::InitMap() {
             }
 
     map->cloudChunk.setupBuffer();
+
+    map->waterChunk.init();
+    map->waterChunk.setupBuffer();
+
     return 0;
 }
 
@@ -365,6 +371,29 @@ void Scene::CubeShaderDraw() {
             for (auto &chunk : cubes) {
                 chunk->Draw(view, projection, 1.0f);
             }
+}
+
+void Scene::WaterDraw() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+
+    auto waterShader = Shader::GetDefaultShader(7);
+    waterShader->use();
+    waterShader->setMat4("view", view);
+    waterShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE30);
+    glBindTexture(GL_TEXTURE_2D, shadowMap->tex);
+    glActiveTexture(GL_TEXTURE0);
+    waterShader->setInt("shadowMap", 30);
+    waterShader->setFloat("shadowBias", shadowBias * 0.01);
+    waterShader->setMat4("lightMatrix", lightMatrix);
+
+    map->waterChunk.Draw(view, projection, 1.0f);
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 }
 
 void Scene::ShadowMapDraw() {
