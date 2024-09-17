@@ -114,11 +114,7 @@ void Scene::MainRender() {
 
     CubeShaderDraw();
 
-    auto SunShader = Shader::GetDefaultShader(6);
-    SunShader->use();
-    mat4 model = glm::translate(mat4(1.0f), SunPosition);
-    SunShader->setMVPS(model, view, projection);
-    sunChunk.Draw(view, projection);
+    SunDraw();
 
     CloudDraw();
 
@@ -198,7 +194,7 @@ int Scene::InitRender() {
 
     // FrameBuffers
     // 1. ShadowMap
-    shadowMap = make_shared<FrameBufferDepthMap>(1024, 1024);
+    shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
 
     return 0;
 }
@@ -361,7 +357,7 @@ void Scene::CubeShaderDraw() {
     glBindTexture(GL_TEXTURE_2D, shadowMap->tex);
     glActiveTexture(GL_TEXTURE0);
     cubeShader->setInt("shadowMap", 30);
-    cubeShader->setFloat("shadowBias", shadowBias);
+    cubeShader->setFloat("shadowBias", shadowBias * 0.01);
     cubeShader->setMat4("lightMatrix", lightMatrix);
 
     for (auto &rol : Chunks)
@@ -373,7 +369,7 @@ void Scene::CubeShaderDraw() {
 
 void Scene::ShadowMapDraw() {
     glBindFramebuffer(GL_FRAMEBUFFER, shadowMap->FBO);
-    glViewport(0, 0, 1024, 1024);
+    glViewport(0, 0, 2048, 2048);
     glClear(GL_DEPTH_BUFFER_BIT);
     // glCullFace(GL_FRONT);
 
@@ -386,7 +382,7 @@ void Scene::ShadowMapDraw() {
     vec3 right = normalize(glm::cross(front, vec3(0.0f, 1.0f, 0.0f)));
     vec3 up = normalize(glm::cross(right, front));
     mat4 lightView = glm::lookAt(SunPosition, SunPosition + front, up);
-    mat4 lightProjection = glm::ortho(-1000.0f, 1000.0f, -1000.0f, 1000.0f, 1.0f, 1000.0f);
+    mat4 lightProjection = glm::ortho(-600.0f, 600.0f, -50.0f, 800.0f, 1.0f, 1000.0f);
     lightMatrix = lightProjection * lightView;
     shadowShader->setMat4("lightMatrix", lightMatrix);
     for (auto &rol : Chunks)
@@ -469,6 +465,14 @@ void Scene::SelectedBlockShaderDraw() {
             glBindVertexArray(0);
         }
     }
+}
+
+void Scene::SunDraw() {
+    auto SunShader = Shader::GetDefaultShader(6);
+    SunShader->use();
+    mat4 model = glm::translate(mat4(1.0f), SunPosition + vec3(0.0f, 500.0f, 0.0f));
+    SunShader->setMVPS(model, view, projection);
+    sunChunk.Draw(view, projection);
 }
 
 void Scene::SparkShaderDraw() {

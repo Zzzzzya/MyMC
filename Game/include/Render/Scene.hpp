@@ -92,7 +92,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     SunChunk sunChunk;
     vec3 SunPosition = vec3(0.0f, 100.0f, 0.0f);
     vec3 SunLightVec = vec3(1.0f, -1.0f, -1.0f);
-    float shadowBias = 0.002f;
+    float shadowBias = 0.038f;
     mat4 lightMatrix;
 
     /* 可控类Setting */
@@ -137,6 +137,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void CubeShaderDraw();
     void CloudDraw();
     void SkyDraw();
+    void SunDraw();
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
 
