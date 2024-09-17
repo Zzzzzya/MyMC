@@ -94,11 +94,14 @@ class Chunk {
   public:
     Chunk(const shared_ptr<Map> &map, vec3 position, vec3 size = vec3(64, 16, 64));
     unsigned int VAO, VBO;
+    unsigned int CloudVAO, CloudVBO;
     vec3 pos;
     vec3 size;
     int verSize = 0;
+    int CloudVersize = 0;
     shared_ptr<Map> map;
     vector<Vertex> vertices;
+    vector<Vertex> CloudVertices;
     bool isCulled = false; // 是否被剔除
     void GenerateMesh();
     void setupBuffer();
@@ -108,11 +111,30 @@ class Chunk {
     void init();
 };
 
+class CloudChunk {
+  public:
+    unsigned int CloudVAO, CloudVBO;
+    vector<Vertex> CloudVertices;
+    int CloudVersize = 0;
+    void setupBuffer();
+    void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
+};
+
+class SunChunk {
+  public:
+    unsigned int SunVAO, SunVBO;
+    vector<Vertex> SunVertices;
+    int SunVersize = 0;
+    void init();
+    void setupBuffer();
+    void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
+};
+
 class ScreenQuad {
   public:
     ScreenQuad();
     unsigned int VAO, VBO;
-    vector<Vertex2D> vertices;
+    vector<Vertex> vertices;
     void init();
     void Draw();
 
@@ -130,6 +152,8 @@ class ScreenQuad {
 #define CB_WOOD 5
 #define CB_LEAVES 6
 #define CB_DIAMOND 7
+
+#define CB_CLOUD 17
 
 // 四边形纹理宏定义
 #define QD_EMPTY 0

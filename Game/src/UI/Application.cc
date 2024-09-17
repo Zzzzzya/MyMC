@@ -116,6 +116,14 @@ void App::Setting() {
     // 2. 雾效设置
     ImGui::SliderFloat("fogDensity", &scene->fogDensity, 0.0f, 0.1f);
 
+    ImGui::SliderFloat("Sun.x", &scene->SunLightVec.x, -1.0f, 1.0f);
+    ImGui::SliderFloat("Sun.y", &scene->SunLightVec.y, -1.0f, 1.0f);
+    ImGui::SliderFloat("Sun.z", &scene->SunLightVec.z, -1.0f, 1.0f);
+    ImGui::SliderFloat("Sun.front.x", &scene->SunPosition.x, -10.0f, 100.0f);
+    ImGui::SliderFloat("Sun.front.y", &scene->SunPosition.y, 80.0f, 300.0f);
+    ImGui::SliderFloat("Sun.front.z", &scene->SunPosition.z, -100.0f, 10.0f);
+    ImGui::SliderFloat("shadowbias", &scene->shadowBias, .0f, 2.f);
+
     if (ImGui::Button("Back")) {
         state = State::WAITING;
     }

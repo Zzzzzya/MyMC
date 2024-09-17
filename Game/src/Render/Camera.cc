@@ -1,7 +1,7 @@
 #include "Camera.hpp"
 #include "Map.hpp"
 
-Camera::Camera(const vec3 &pos) : position(pos) {
+Camera::Camera(const vec3 &pos, const vec3 &front, const vec3 &up) : position(pos), front(front), up(up) {
     updateCameraVectors();
 }
 
@@ -76,6 +76,11 @@ void Camera::ProcessJump(float deltaTime, const shared_ptr<Map> &map) {
         map->CheckCollisionSingle(position + vec3(0.0f, 2.0f, 0.0f) + movVec) &&
         map->CheckCollisionSingle(position + vec3(0.0f, 1.0f, 0.0f) + movVec))
         position += movVec;
+}
+
+void Camera::changeFront(const vec3 &newFront) {
+    front = newFront;
+    updateCameraVectors();
 }
 
 void Camera::updateCameraVectors() {

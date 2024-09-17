@@ -12,7 +12,7 @@ class PerlinNoise2D {
     noise::module::Perlin perlinModule;
 
   public:
-    PerlinNoise2D(float frequency = 5.0, float persistence = 0.01, float lacunarity = 2.0, int octaveCount = 3,
+    PerlinNoise2D(float frequency = 10.0, float persistence = 0.5, float lacunarity = 2.0, int octaveCount = 3,
                   noise::NoiseQuality noiseQuality = noise::QUALITY_STD) {
         // 初始化 Perlin 噪声模块的参数
         perlinModule.SetFrequency(frequency);       // 设置频率
@@ -57,7 +57,12 @@ class Map {
     int stoneHeight = 20;
     int dirtHeight = 5;
     PerlinNoise2D perlinNoise;
+    PerlinNoise2D noiseLayer1;
+    PerlinNoise2D noiseLayer2;
+    PerlinNoise2D noiseLayer3;
     vector<vector<int>> heightMap;
+
+    CloudChunk cloudChunk;
 
     void InitMap();
     inline shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> GetMap() const {
@@ -86,6 +91,7 @@ class Map {
     void GenerateSurface();
     void GenerateTrees();
     void GenerateGrass();
+    void GenerateClouds();
 
     bool CheckIfCanContainsATree(int x, int y, int z, int height);
     void GenerateATree(int x, int y, int z, int height, int type = 0);

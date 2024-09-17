@@ -105,13 +105,20 @@ void Scene::MainRender() {
 
     UpdateVP();
 
+    ShadowMapDraw();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     CubeShaderDraw();
 
-    auto SkyShader = Shader::GetDefaultShader(3);
-    glDepthFunc(GL_LEQUAL);
-    SkyShader->use();
-    screenQuad.Draw();
-    glDepthFunc(GL_LESS);
+    SunDraw();
+
+    CloudDraw();
+
+    SkyDraw();
 
     SelectedBlockShaderDraw();
 
@@ -180,6 +187,15 @@ int Scene::InitRender() {
 
     // screenQuad
     screenQuad.init();
+
+    // SunChunk
+    sunChunk.init();
+    sunChunk.setupBuffer();
+
+    // FrameBuffers
+    // 1. ShadowMap
+    shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
+
     return 0;
 }
 
@@ -211,6 +227,7 @@ int Scene::InitMap() {
                 Chunks[i][j][k] = make_shared<Chunk>(map, position, ChunkSize);
             }
 
+    map->cloudChunk.setupBuffer();
     return 0;
 }
 
@@ -311,6 +328,7 @@ void Scene::UpdateVP() {
 }
 
 void Scene::CubeShaderDraw() {
+
     auto cubeShader = Shader::GetDefaultShader(0);
     cubeShader->use();
     cubeShader->setMat4("view", view);
@@ -318,29 +336,98 @@ void Scene::CubeShaderDraw() {
 
     int texNum = 0;
     for (int i = 0; i < Texture::DefaultTexture.size(); i++) {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        // glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
-        // cubeShader->setInt("tex2D[" + std::to_string(i) + "]", i);
-        cubeShader->setHandle("tex2D[" + std::to_string(i) + "]", Texture::DefaultTexture[i]->handle);
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, Texture::DefaultTexture[i]->id);
+        cubeShader->setInt("tex2D[" + std::to_string(i) + "]", i);
+        // cubeShader->setHandle("tex2D[" + std::to_string(i) + "]", Texture::DefaultTexture[i]->handle);
         texNum++;
     }
 
     for (int i = 0; i < CubeMap::DefaultCubeMaps.size(); i++) {
-        // glActiveTexture(GL_TEXTURE0 + i);
-        // glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i -
-        // texNum]->id); cubeShader->setInt("tex[" + std::to_string(i - texNum) +
-        // "]", i);
-        cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
+        glActiveTexture(GL_TEXTURE0 + texNum + i);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[i]->id);
+        cubeShader->setInt("tex[" + std::to_string(i) + "]", texNum + i);
+        // cubeShader->setHandle("tex[" + std::to_string(i) + "]", CubeMap::DefaultCubeMaps[i]->handle);
     }
 
     cubeShader->setVec3("cameraPos", player->camera.position);
     cubeShader->setFog(vec3(1.0f, 1.0f, 1.0f), 300.0f, 1000.0f, fogDensity);
 
+    glActiveTexture(GL_TEXTURE30);
+    glBindTexture(GL_TEXTURE_2D, shadowMap->tex);
+    glActiveTexture(GL_TEXTURE0);
+    cubeShader->setInt("shadowMap", 30);
+    cubeShader->setFloat("shadowBias", shadowBias * 0.01);
+    cubeShader->setMat4("lightMatrix", lightMatrix);
+
     for (auto &rol : Chunks)
         for (auto &cubes : rol)
             for (auto &chunk : cubes) {
-                chunk->Draw(view, projection, 2.0f);
+                chunk->Draw(view, projection, 1.0f);
             }
+}
+
+void Scene::ShadowMapDraw() {
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowMap->FBO);
+    glViewport(0, 0, 2048, 2048);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    // glCullFace(GL_FRONT);
+
+    auto shadowShader = Shader::GetDefaultShader(5);
+    shadowShader->use();
+
+    // vec3 lightPos = vec3(0.0f, 100.0f, 0.0f);
+
+    vec3 front = normalize(SunLightVec);
+    vec3 right = normalize(glm::cross(front, vec3(0.0f, 1.0f, 0.0f)));
+    vec3 up = normalize(glm::cross(right, front));
+    mat4 lightView = glm::lookAt(SunPosition, SunPosition + front, up);
+    mat4 lightProjection = glm::ortho(-600.0f, 600.0f, -50.0f, 800.0f, 1.0f, 1000.0f);
+    lightMatrix = lightProjection * lightView;
+    shadowShader->setMat4("lightMatrix", lightMatrix);
+    for (auto &rol : Chunks)
+        for (auto &cubes : rol)
+            for (auto &chunk : cubes) {
+                chunk->Draw(lightView, lightProjection, 2.0f);
+            }
+
+    // glCullFace(GL_BACK);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Scene::CloudDraw() {
+    auto cloudShader = Shader::GetDefaultShader(4);
+    cloudShader->use();
+    cloudShader->setMat4("view", view);
+    cloudShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE28);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::CloudCubeMap->id);
+    cloudShader->setInt("tex", 28);
+
+    // cloudShader->setHandle("tex", CubeMap::CloudCubeMap->handle);
+
+    map->cloudChunk.Draw(view, projection, 2.0f);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void Scene::SkyDraw() {
+    glDisable(GL_CULL_FACE);
+    auto SkyShader = Shader::GetDefaultShader(3);
+    glDepthFunc(GL_LEQUAL);
+    SkyShader->use();
+    SkyShader->setMat4("view", mat4(glm::mat3(view))); // remove translation
+    SkyShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE29);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[7]->id);
+    SkyShader->setInt("Sky", 29);
+
+    // SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
+    screenQuad.Draw();
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
 }
 
 void Scene::SelectedBlockShaderDraw() {
@@ -380,6 +467,14 @@ void Scene::SelectedBlockShaderDraw() {
     }
 }
 
+void Scene::SunDraw() {
+    auto SunShader = Shader::GetDefaultShader(6);
+    SunShader->use();
+    mat4 model = glm::translate(mat4(1.0f), SunPosition + vec3(0.0f, 500.0f, 0.0f));
+    SunShader->setMVPS(model, view, projection);
+    sunChunk.Draw(view, projection);
+}
+
 void Scene::SparkShaderDraw() {
     // 渲染光标
     // TODO：光标渲染抽离到函数
@@ -388,10 +483,15 @@ void Scene::SparkShaderDraw() {
     static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
     sparkShader->use();
     sparkShader->setMat4("model", sparkModel);
-    sparkShader->setHandle("spark", spark->handle);
+
+    glActiveTexture(GL_TEXTURE27);
+    glBindTexture(GL_TEXTURE_2D, spark->id);
+    sparkShader->setInt("spark", 27);
+    // sparkShader->setHandle("spark", spark->handle);
     glBindVertexArray(sparkVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_DEPTH_TEST);
 }
 

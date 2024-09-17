@@ -9,6 +9,7 @@
 #include "Player.hpp"
 #include "Map.hpp"
 #include "Frustum.hpp"
+#include "FrameBuffers.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -49,6 +50,8 @@ class Scene : public std::enable_shared_from_this<Scene> {
     /* 玩家 */
     shared_ptr<Player> player = make_shared<Player>(vec3(20.0f, 100.0f, -20.0f));
 
+    // vec3 SunLightVec = vec3(1.0f, 0.0f, -1.0f);
+
     /* 地图 */
     int mapX = 16 * 25;
     int mapY = 100 * 1;
@@ -85,10 +88,16 @@ class Scene : public std::enable_shared_from_this<Scene> {
     float maxCullingDistance = 500.0f;
     Frustum frustum;
     ScreenQuad screenQuad;
+    shared_ptr<FrameBufferDepthMap> shadowMap;
+    SunChunk sunChunk;
+    vec3 SunPosition = vec3(0.0f, 100.0f, 0.0f);
+    vec3 SunLightVec = vec3(1.0f, -1.0f, -1.0f);
+    float shadowBias = 0.038f;
+    mat4 lightMatrix;
 
     /* 可控类Setting */
     bool bVSync = false;
-    float fogDensity = 0.01f;
+    float fogDensity = 0.003f;
 
     Scene();
 
@@ -124,7 +133,11 @@ class Scene : public std::enable_shared_from_this<Scene> {
      */
     void SceneCulling(); // 场景剔除
     void UpdateVP();
+    void ShadowMapDraw();
     void CubeShaderDraw();
+    void CloudDraw();
+    void SkyDraw();
+    void SunDraw();
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
 
