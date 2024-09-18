@@ -13,13 +13,15 @@ flat out int index;
 flat out int meshType;
 out vec3 FragPos;
 out vec3 Normal;
+out mat4 cameraMatrix;
 
 uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
     FragPos = aPos;
-    gl_Position = projection * view * vec4(aPos, 1.0f);
+    cameraMatrix = projection * view;
+    gl_Position = cameraMatrix * vec4(aPos, 1.0f);
     index = aCubeID - 1;
     meshType = aFaceID;
     TexCoordsCubeMap = aTexCoordsCubeMap;

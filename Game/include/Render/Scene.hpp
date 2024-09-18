@@ -90,12 +90,14 @@ class Scene : public std::enable_shared_from_this<Scene> {
     ScreenQuad screenQuad;
     ScreenMesh screenMesh;
     shared_ptr<FrameBuffer> ScreenBuffer;
+    shared_ptr<FrameBufferOnlyRBO> ScreenBufferForSSR;
     shared_ptr<FrameBufferDepthMap> shadowMap;
     SunChunk sunChunk;
     vec3 SunPosition = vec3(0.0f, 100.0f, 0.0f);
     vec3 SunLightVec = vec3(1.0f, -1.0f, -1.0f);
     float shadowBias = 0.088f;
     mat4 lightMatrix;
+    bool ssrOn = false;
 
     /* 可控类Setting */
     bool bVSync = false;
@@ -138,6 +140,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void ShadowMapDraw();
     void CubeShaderDraw();
     void WaterDraw();
+    void WaterSSRDraw();
     void CloudDraw();
     void SkyDraw();
     void SunDraw();

@@ -1,12 +1,14 @@
 #version 450 core
 
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec3 oNormal;
+
 in vec3 TexCoordsCubeMap;
 in vec2 TexCoords;
 flat in int index;
 flat in int meshType;
 in vec3 FragPos;
-
-out vec4 FragColor;
+in vec3 Normal;
 
 #define MAX_TEXTURES 16
 uniform sampler2D tex2D[MAX_TEXTURES];
@@ -61,5 +63,6 @@ void main() {
 
     // Final Color
     vec3 finalColor = fogColor;
-    FragColor = vec4(finalColor, Color.a);
+    FragColor = vec4(finalColor, 1.0f);
+    oNormal = Normal;
 }

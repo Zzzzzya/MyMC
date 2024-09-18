@@ -122,8 +122,10 @@ void Scene::MainRender() {
 
     UpdateVP();
 
+    // PASS 1: ShadowMap
     ShadowMapDraw();
 
+    // PASS 2: MainRender
     glBindFramebuffer(GL_FRAMEBUFFER, ScreenBuffer->FBO);
     glViewport(0, 0, display_w, display_h);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -131,19 +133,38 @@ void Scene::MainRender() {
     glEnable(GL_DEPTH_TEST);
 
     SkyDraw();
-    CubeShaderDraw();
 
-    WaterDraw();
+    CubeShaderDraw();
 
     SunDraw();
 
     CloudDraw();
 
+    WaterDraw();
+
     SelectedBlockShaderDraw();
 
-    SparkShaderDraw();
+    // PASS 3: SSR
 
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBufferForSSR->FBO);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (ssrOn) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, ScreenBuffer->FBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ScreenBufferForSSR->FBO);
+        glBlitFramebuffer(0, 0, display_w, display_h, 0, 0, display_w, display_h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+        glEnable(GL_DEPTH_TEST);
+
+        WaterSSRDraw();
+    }
+
+    // PASS 4: PostProcessing
     PostProcessingDraw();
+
+    SparkShaderDraw();
 }
 
 void Scene::DestroyScene() {
@@ -221,6 +242,8 @@ int Scene::InitRender() {
     shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
     // 2. ScreenBuffer
     ScreenBuffer = make_shared<FrameBuffer>(imageWidth, imageHeight);
+    // 3. ScreenBufferForSSR
+    ScreenBufferForSSR = make_shared<FrameBufferOnlyRBO>(imageWidth, imageHeight);
 
     return 0;
 }
@@ -403,6 +426,8 @@ void Scene::WaterDraw() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
 
+    // 启用模板缓冲写入
+
     auto waterShader = Shader::GetDefaultShader(7);
     waterShader->use();
     waterShader->setMat4("view", view);
@@ -410,7 +435,12 @@ void Scene::WaterDraw() {
 
     glActiveTexture(GL_TEXTURE30);
     glBindTexture(GL_TEXTURE_2D, shadowMap->tex);
+    glActiveTexture(GL_TEXTURE29);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    glActiveTexture(GL_TEXTURE28);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->depthTex);
     glActiveTexture(GL_TEXTURE0);
+
     waterShader->setInt("shadowMap", 30);
     waterShader->setFloat("shadowBias", shadowBias * 0.01);
     waterShader->setMat4("lightMatrix", lightMatrix);
@@ -420,6 +450,25 @@ void Scene::WaterDraw() {
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
+}
+
+void Scene::WaterSSRDraw() {
+    auto waterSSRShader = Shader::GetDefaultShader(9);
+    waterSSRShader->use();
+    waterSSRShader->setMat4("view", view);
+    waterSSRShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE30);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->depthTex);
+    glActiveTexture(GL_TEXTURE29);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    glActiveTexture(GL_TEXTURE0);
+
+    waterSSRShader->setInt("depth", 30);
+    waterSSRShader->setInt("scene", 29);
+    waterSSRShader->setVec3("cameraPos", player->camera.position);
+
+    map->waterChunk.Draw(view, projection, 1.0f);
 }
 
 void Scene::ShadowMapDraw() {
@@ -490,7 +539,6 @@ void Scene::SelectedBlockShaderDraw() {
         return;
 
     // 渲染选中物体
-    // TODO: 预选物体渲染抽离到函数
     if (SelectedAnyBlock) {
         if (SelectedBlockVertices.size() != 0) {
             SelectedBlockVertices.clear();
@@ -532,7 +580,7 @@ void Scene::SunDraw() {
 
 void Scene::SparkShaderDraw() {
     // 渲染光标
-    // TODO：光标渲染抽离到函数
+
     glDisable(GL_DEPTH_TEST);
     auto sparkShader = Shader::GetDefaultShader(1);
     static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
@@ -561,9 +609,12 @@ void Scene::PostProcessingDraw() {
     shader->use();
 
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ScreenBufferForSSR->tex);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
 
     shader->setInt("screenTexture", 0);
+    shader->setInt("scene", 1);
     shader->setFloat("inWater", player->inWater ? 0.4 : 1.0f);
     screenMesh.Draw();
     glBindTexture(GL_TEXTURE_2D, 0);

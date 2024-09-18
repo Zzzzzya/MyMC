@@ -26,6 +26,7 @@
 struct Vertex {
     vec3 position;
     vec2 texCoords;
+    vec3 normal = vec3(0.0f, 1.0f, 0.0f);
 
     int faceID = 0;
     int cubeID = 0;
@@ -47,6 +48,7 @@ struct Mesh {
     virtual int &ID() = 0;
     virtual bool Occluded() const = 0;
     virtual bool Passed() const = 0;
+    virtual bool RayPassed() const = 0;
     virtual ~Mesh() = default;
 };
 
@@ -67,6 +69,9 @@ struct Cube : public Mesh {
     virtual bool Passed() const override {
         return !CubeID || CubeID == CB_WATER;
     }
+    virtual bool RayPassed() const override {
+        return Passed();
+    }
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -84,7 +89,9 @@ struct Quad : public Mesh {
     virtual bool Passed() const override {
         return !QuadID;
     }
-
+    virtual bool RayPassed() const override {
+        return Passed();
+    }
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -101,6 +108,9 @@ struct CrossQuad : public Mesh {
     }
     virtual bool Passed() const override {
         return true;
+    }
+    virtual bool RayPassed() const override {
+        return false;
     }
 
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;

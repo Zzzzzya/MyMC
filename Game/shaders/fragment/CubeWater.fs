@@ -1,12 +1,14 @@
 #version 450 core
 
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec3 oNormal;
+
 in vec3 TexCoordsCubeMap;
 in vec2 TexCoords;
 flat in int index;
 flat in int meshType;
 in vec3 FragPos;
-
-out vec4 FragColor;
+in vec3 Normal;
 
 #define MAX_TEXTURES 16
 uniform sampler2D tex2D[MAX_TEXTURES];
@@ -44,8 +46,8 @@ float ShadowCalculate(vec4 fragPosLightSpace) {
 
 void main() {
     // Color
-    vec4 Color = vec4(38.0 / 255.0, 0.0 / 255.0, 191.0 / 255.0, 0.8);
-
+    vec4 Color = vec4(38.0 / 255.0, 0.0 / 255.0, 191.0 / 255.0, 0.8f);
+    // vec4 Color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
     // Shadow
     vec4 fragPosLightSpace = lightMatrix * vec4(FragPos, 1.0);
     float shadow = ShadowCalculate(fragPosLightSpace);
@@ -60,4 +62,5 @@ void main() {
     // Final Color
     vec3 finalColor = fogColor;
     FragColor = Color;
+    oNormal = Normal;
 }

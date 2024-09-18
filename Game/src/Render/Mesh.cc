@@ -15,6 +15,15 @@ int Cube::GetShaderID() const {
     return CubeIdMap[CubeID].second;
 }
 
+static vector<vec3> normals = {
+    {1.0f, 0.0f, 0.0f},  // 右
+    {-1.0f, 0.0f, 0.0f}, // 左
+    {0.0f, 1.0f, 0.0f},  // 上
+    {0.0f, -1.0f, 0.0f}, // 下
+    {0.0f, 0.0f, 1.0f},  // 前
+    {0.0f, 0.0f, -1.0f}, // 后
+};
+
 void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
     for (int p = 0; p < 6; p++) {
         if (Exposed[p]) {
@@ -24,6 +33,7 @@ void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
                 vertex.position += WorldPos;
                 vertex.cubeID = CubeID;
                 vertex.faceID = 0;
+                vertex.normal = normals[p];
                 vertices.push_back(vertex);
             }
         }
@@ -358,6 +368,8 @@ void WaterChunk::setupBuffer() {
     glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
     glEnableVertexAttribArray(4);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

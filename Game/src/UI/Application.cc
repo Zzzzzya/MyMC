@@ -109,6 +109,7 @@ void App::Setting() {
     // 1. 是否开启垂直同步
     ImGui::Checkbox("VSync", &scene->bVSync);
     glfwSwapInterval(scene->bVSync);
+    ImGui::Checkbox("SSR", &scene->ssrOn);
 
     // 2. 雾效设置
     ImGui::SliderFloat("fogDensity", &scene->fogDensity, 0.0f, 0.1f);

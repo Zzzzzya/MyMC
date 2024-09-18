@@ -34,7 +34,7 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
         return false;
     }
     auto &map = *(this->_map);
-    if (!map[blockPos.x][blockPos.y][blockPos.z]->Passed())
+    if (!map[blockPos.x][blockPos.y][blockPos.z]->RayPassed())
         return true;
     return false;
 }
