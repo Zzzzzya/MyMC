@@ -88,6 +88,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     float maxCullingDistance = 500.0f;
     Frustum frustum;
     ScreenQuad screenQuad;
+    shared_ptr<FrameBuffer> ScreenBuffer;
     shared_ptr<FrameBufferDepthMap> shadowMap;
     SunChunk sunChunk;
     vec3 SunPosition = vec3(0.0f, 100.0f, 0.0f);

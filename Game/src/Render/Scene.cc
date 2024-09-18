@@ -143,6 +143,8 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    // 设置窗口提示，禁止窗口缩放
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     // Create window with GLFW
     window = glfwCreateWindow(imageWidth, imageHeight, "MC", NULL, NULL);
@@ -197,6 +199,8 @@ int Scene::InitRender() {
     // FrameBuffers
     // 1. ShadowMap
     shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
+    // 2. ScreenBuffer
+    ScreenBuffer = make_shared<FrameBuffer>(display_w, display_h);
 
     return 0;
 }
