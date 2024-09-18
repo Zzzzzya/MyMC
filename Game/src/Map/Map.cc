@@ -204,8 +204,31 @@ void Map::GenerateSurface() {
                 map[i][j][k]->ID() = CB_DIRT_BLOCK;
             }
 
-            for (int j = 34; j >= maxHeight; j--) {
-                map[i][j][k]->ID() = CB_WATER;
+            static int dx[] = {1, -1, 0, 0, 1, -1, 1, -1};
+            static int dz[] = {0, 0, 1, -1, -1, 1, 1, -1};
+
+            if (maxHeight <= 37) {
+                for (int j = 37; j >= maxHeight; j--) {
+                    map[i][j][k]->ID() = CB_WATER;
+                }
+                map[i][maxHeight - 1][k]->ID() = CB_SAND;
+            }
+
+            if (map[i][37][k]->ID() != CB_WATER && map[i][37][k]->ID() != CB_EMPTY) {
+                for (int pp = -3; pp <= 3; pp++) {
+                    for (int kk = -3; kk <= 3; kk++) {
+                        if (i + pp >= 0 && i + pp < mapX && k + kk >= 0 && k + kk < mapZ) {
+                            if (map[i + pp][37][k + kk]->ID() == CB_WATER) {
+                                for (int hh = 37; hh < 40; hh++) {
+                                    if (map[i][hh][k]->ID() == CB_EMPTY)
+                                        break;
+                                    map[i][hh][k]->ID() = CB_SAND;
+                                }
+                            }
+                        }
+                    }
+                }
+                // map[i][37][k]->ID() = CB_SAND;
             }
             if (bCloud) {
                 map[i][88][k]->ID() = CB_CLOUD;

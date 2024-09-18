@@ -372,3 +372,44 @@ void WaterChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
         glBindVertexArray(0);
     }
 }
+
+ScreenMesh::ScreenMesh() {
+}
+
+void ScreenMesh::init() {
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    GenerateMesh();
+
+    setupBuffer();
+}
+
+void ScreenMesh::Draw() {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
+}
+
+void ScreenMesh::GenerateMesh() {
+    for (int i = 24; i < 30; i++) {
+        auto &ver = Cube::CubeVertice[i];
+        auto ver2D = Vertex2D(vec2(ver.position.x, ver.position.y), ver.texCoords);
+        vertices.push_back(ver2D);
+    }
+}
+
+void ScreenMesh::setupBuffer() {
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex2D), &vertices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, texCoords));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}

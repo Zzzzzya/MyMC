@@ -10,6 +10,9 @@ class Player {
     Player(const vec3 &pos = vec3(0.0f, 0.0f, 0.0f));
 
     Camera camera;
+
+    bool inWater = false;
+    vec3 curBlockPos;
 };
 
 #endif

@@ -47,6 +47,8 @@ void CubeMap::setUpDefaultCubeMaps() {
     setUpDefaultCubeMapsHelper("Leaves");
     // 6
     setUpDefaultCubeMapsHelper("Diamond");
+    // 7
+    setUpDefaultCubeMapsHelper("Sand");
 
     // last one - skybox
     setUpDefaultCubeMapsHelper("SkyBox");

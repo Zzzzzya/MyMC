@@ -9,6 +9,7 @@ class FrameBuffer {
     FrameBuffer(int, int);
     unsigned int FBO;
     unsigned int tex;
+    unsigned int rbo;
 
     void setUpFrameBuffer(int, int);
 };

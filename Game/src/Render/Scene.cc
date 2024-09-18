@@ -63,6 +63,23 @@ void Scene::MainLoop() {
         if (app.state == App::State::RUN)
             SelectedAnyBlock = map->ViewRayTrace(player->camera.position, player->camera.front, SelectedBlockToDo,
                                                  SelectedBlockToAdd, viewRayTraceDistance, viewRayTraceStep);
+
+        // 2. 更新Player状态
+        if (app.state == App::State::RUN) {
+            auto pos = player->camera.position;
+            player->curBlockPos = vec3(floor(pos.x / (2.0f)), floor(pos.y / (2.0f)), floor(pos.z / (-2.0f)));
+            if (player->curBlockPos.x < 0 || player->curBlockPos.x >= map->mapSize.x || player->curBlockPos.y < 0 ||
+                player->curBlockPos.y >= map->mapSize.y || player->curBlockPos.z < 0 ||
+                player->curBlockPos.z >= map->mapSize.z)
+                player->inWater = false;
+            else {
+                if ((*(map->_map))[player->curBlockPos.x][player->curBlockPos.y][player->curBlockPos.z]->ID() ==
+                    CB_WATER)
+                    player->inWater = true;
+                else
+                    player->inWater = false;
+            }
+        }
     }
 }
 
@@ -97,7 +114,7 @@ void Scene::CreatingNewGame() {
 
 void Scene::MainRender() {
     /* Main Render 真正渲染场景的地方 */
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBuffer->FBO);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -107,11 +124,13 @@ void Scene::MainRender() {
 
     ShadowMapDraw();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBuffer->FBO);
     glViewport(0, 0, display_w, display_h);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
+    SkyDraw();
     CubeShaderDraw();
 
     WaterDraw();
@@ -120,11 +139,11 @@ void Scene::MainRender() {
 
     CloudDraw();
 
-    SkyDraw();
-
     SelectedBlockShaderDraw();
 
     SparkShaderDraw();
+
+    PostProcessingDraw();
 }
 
 void Scene::DestroyScene() {
@@ -191,6 +210,7 @@ int Scene::InitRender() {
 
     // screenQuad
     screenQuad.init();
+    screenMesh.init();
 
     // SunChunk
     sunChunk.init();
@@ -200,7 +220,7 @@ int Scene::InitRender() {
     // 1. ShadowMap
     shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
     // 2. ScreenBuffer
-    ScreenBuffer = make_shared<FrameBuffer>(display_w, display_h);
+    ScreenBuffer = make_shared<FrameBuffer>(imageWidth, imageHeight);
 
     return 0;
 }
@@ -334,7 +354,7 @@ bool Scene::FrustumCulling(Chunk &chunk) {
 void Scene::UpdateVP() {
     // MVPs
     view = player->camera.ViewMat();
-    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 1000.0f);
+    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 500.0f);
 }
 
 void Scene::CubeShaderDraw() {
@@ -379,6 +399,7 @@ void Scene::CubeShaderDraw() {
 
 void Scene::WaterDraw() {
     glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
 
@@ -397,6 +418,7 @@ void Scene::WaterDraw() {
     map->waterChunk.Draw(view, projection, 1.0f);
 
     glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 }
 
@@ -425,7 +447,7 @@ void Scene::ShadowMapDraw() {
             }
 
     // glCullFace(GL_BACK);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Scene::CloudDraw() {
@@ -453,7 +475,7 @@ void Scene::SkyDraw() {
     SkyShader->setMat4("projection", projection);
 
     glActiveTexture(GL_TEXTURE29);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[7]->id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[CubeMap::DefaultCubeMaps.size() - 1]->id);
     SkyShader->setInt("Sky", 29);
 
     // SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
@@ -524,6 +546,26 @@ void Scene::SparkShaderDraw() {
     glBindVertexArray(sparkVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Scene::PostProcessingDraw() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_DEPTH_TEST);
+    auto shader = Shader::GetDefaultShader(8);
+    shader->use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+
+    shader->setInt("screenTexture", 0);
+    shader->setFloat("inWater", player->inWater ? 0.4 : 1.0f);
+    screenMesh.Draw();
     glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_DEPTH_TEST);
 }

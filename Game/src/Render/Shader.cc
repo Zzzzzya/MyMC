@@ -18,6 +18,7 @@ void Shader::setUpDefaultShaders() {
     DefaultShader.push_back(make_shared<Shader>("shadowMap.vs", "shadowMap.fs"));
     DefaultShader.push_back(make_shared<Shader>("Sun.vs", "Sun.fs"));
     DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeWater.fs"));
+    DefaultShader.push_back(make_shared<Shader>("Postprocess.vs", "Postprocess.fs"));
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {

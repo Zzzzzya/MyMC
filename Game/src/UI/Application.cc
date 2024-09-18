@@ -38,9 +38,6 @@ void App::PrepareRender() {
     ImGui::Render();
 
     glfwGetFramebufferSize(scene->window, &scene->display_w, &scene->display_h);
-    glViewport(0, 0, scene->display_w, scene->display_h);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void App::ImGuiRender() {

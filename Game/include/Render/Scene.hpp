@@ -88,6 +88,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     float maxCullingDistance = 500.0f;
     Frustum frustum;
     ScreenQuad screenQuad;
+    ScreenMesh screenMesh;
     shared_ptr<FrameBuffer> ScreenBuffer;
     shared_ptr<FrameBufferDepthMap> shadowMap;
     SunChunk sunChunk;
@@ -142,6 +143,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void SunDraw();
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
+    void PostProcessingDraw();
 
     /**
      * @brief 场景剔除子模块

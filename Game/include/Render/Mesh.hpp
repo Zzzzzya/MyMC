@@ -13,6 +13,7 @@
 #define CB_WOOD 5
 #define CB_LEAVES 6
 #define CB_DIAMOND 7
+#define CB_SAND 8
 
 #define CB_CLOUD 17
 #define CB_WATER 18
@@ -162,6 +163,19 @@ class ScreenQuad {
     ScreenQuad();
     unsigned int VAO, VBO;
     vector<Vertex> vertices;
+    void init();
+    void Draw();
+
+  private:
+    void GenerateMesh();
+    void setupBuffer();
+};
+
+class ScreenMesh {
+  public:
+    ScreenMesh();
+    unsigned int VAO, VBO;
+    vector<Vertex2D> vertices;
     void init();
     void Draw();
 

@@ -44,20 +44,20 @@ float ShadowCalculate(vec4 fragPosLightSpace) {
 
 void main() {
     // Color
-    vec4 Color = vec4(0.3f, 0.4f, 0.9f, 0.5f);
+    vec4 Color = vec4(38.0 / 255.0, 0.0 / 255.0, 191.0 / 255.0, 0.8);
 
-    // // Shadow
-    // vec4 fragPosLightSpace = lightMatrix * vec4(FragPos, 1.0);
-    // float shadow = ShadowCalculate(fragPosLightSpace);
-    // vec3 shadowColor = Color.rgb * (1.0 - shadow * 0.5);
+    // Shadow
+    vec4 fragPosLightSpace = lightMatrix * vec4(FragPos, 1.0);
+    float shadow = ShadowCalculate(fragPosLightSpace);
+    vec3 shadowColor = Color.rgb * (1.0 - shadow * 0.5);
 
-    // // Fog
-    // float distance = length(cameraPos - FragPos);
-    // float fogFactor = exp(-pow(fogDensity * distance, 2.0));
-    // fogFactor = clamp(fogFactor, 0.0, 1.0);
-    // vec3 fogColor = mix(fogColor, shadowColor, fogFactor);
+    // Fog
+    float distance = length(cameraPos - FragPos);
+    float fogFactor = exp(-pow(fogDensity * distance, 2.0));
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    vec3 fogColor = mix(fogColor, shadowColor, fogFactor);
 
-    // // Final Color
-    // vec3 finalColor = fogColor;
+    // Final Color
+    vec3 finalColor = fogColor;
     FragColor = Color;
 }
