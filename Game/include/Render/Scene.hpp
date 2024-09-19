@@ -81,11 +81,13 @@ class Scene : public std::enable_shared_from_this<Scene> {
     vec3 SelectedBlockToAdd = vec3(0.0f, 0.0f, 0.0f);
     unsigned int SelectedBlockVAO, SelectedBlockVBO;
     vector<Vertex> SelectedBlockVertices;
+    float LastMouseCheckTime = 0.0f;
+    float mouseCheckInterval = 0.3f;
 
     /* Render相关 */
     mat4 view;
     mat4 projection;
-    float maxCullingDistance = 500.0f;
+    float maxCullingDistance = 300.0f;
     Frustum frustum;
     ScreenQuad screenQuad;
     ScreenMesh screenMesh;

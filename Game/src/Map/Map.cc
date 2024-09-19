@@ -42,16 +42,78 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
 bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis,
                        float step) const {
     // ensure the direction is normalized
+    vector<vec3> path;
+    path.push_back(GetBlockCoords(position));
     for (float i = 0; i < dis; i += step) {
         vec3 newPos = position + direction * i;
         auto blockPos = GetBlockCoords(newPos);
+        if (blockPos != path.back())
+            path.push_back(blockPos);
         if (CheckHaveSomething(blockPos)) {
             ToDo = blockPos;
-            ToAdd = direction * i;
+            if (path.size() < 2)
+                ToAdd = path[0];
+            else
+                ToAdd = path[path.size() - 2];
             return true;
         }
     }
     return false;
+}
+
+void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate) {
+    auto &map = *(this->_map);
+    int mapX = mapSize.x;
+    int mapY = mapSize.y;
+    int mapZ = mapSize.z;
+    // Set the Exposed attribute of each cube
+    int dx[] = {1, -1, 0, 0, 0, 0};
+    int dy[] = {0, 0, 1, -1, 0, 0};
+    int dz[] = {0, 0, 0, 0, -1, 1};
+    int ys[] = {1, 0, 3, 2, 5, 4};
+
+    auto i = block.x;
+    auto j = block.y;
+    auto k = block.z;
+
+    if (map[i][j][k]->ID() == 0) {
+        for (int p = 0; p < 6; p++) {
+            map[i][j][k]->Exposed[p] = 0;
+            int nx = i + dx[p];
+            int ny = j + dy[p];
+            int nz = k + dz[p];
+
+            // If the cube is on the edge of the map or the cube is exposed
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+                continue;
+            }
+            else {
+                if (map[nx][ny][nz]->ID() != CB_EMPTY)
+                    map[nx][ny][nz]->Exposed[ys[p]] = true;
+            }
+        }
+    }
+    else {
+        for (int p = 0; p < 6; p++) {
+            map[i][j][k]->Exposed[p] = 0;
+            int nx = i + dx[p];
+            int ny = j + dy[p];
+            int nz = k + dz[p];
+
+            // If the cube is on the edge of the map or the cube is exposed
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+                map[i][j][k]->Exposed[p] = true;
+            }
+            else {
+                if (map[nx][ny][nz]->ID() != CB_EMPTY)
+                    map[nx][ny][nz]->Exposed[ys[p]] = false;
+                if (map[i][j][k]->ID() == CB_WATER)
+                    map[i][j][k]->Exposed[p] = map[nx][ny][nz]->ID() == 0;
+                else
+                    map[i][j][k]->Exposed[p] = !map[nx][ny][nz]->Occluded();
+            }
+        }
+    }
 }
 
 bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {

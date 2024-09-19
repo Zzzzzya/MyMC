@@ -377,7 +377,7 @@ bool Scene::FrustumCulling(Chunk &chunk) {
 void Scene::UpdateVP() {
     // MVPs
     view = player->camera.ViewMat();
-    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 500.0f);
+    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 300.0f);
 }
 
 void Scene::CubeShaderDraw() {
@@ -671,6 +671,87 @@ void Scene::ProcessKeyInput() {
     if (KeyPressed(window, GLFW_KEY_O)) {
         if (app.state == App::State::PICTURE)
             app.state = App::State::RUN;
+    }
+
+    LastMouseCheckTime += deltaTime;
+    if (LastMouseCheckTime >= mouseCheckInterval) {
+        // 检测鼠标right键按下
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+            // 执行鼠标right键按下时的操作
+            if (SelectedAnyBlock) {
+                std::cout << "yes" << std::endl;
+                auto &cube = (*(map->_map))[SelectedBlockToAdd.x][SelectedBlockToAdd.y][SelectedBlockToAdd.z];
+                cube = make_shared<Cube>();
+                cube->ID() = CB_GRASS_BLOCK;
+                auto cx = SelectedBlockToAdd.x / ChunkSize.x;
+                auto cy = SelectedBlockToAdd.y / ChunkSize.y;
+                auto cz = SelectedBlockToAdd.z / ChunkSize.z;
+                auto chunk = Chunks[cx][cy][cz];
+
+                vector<vec3> chunksToFlush;
+                map->flushExposedFaces(SelectedBlockToAdd, chunksToFlush);
+                chunk->GenerateMesh();
+                chunk->setupBuffer();
+
+                if ((int)(SelectedBlockToAdd.x + 1) % (int)(ChunkSize.x) == 0 && cx + 1 <= MAX_CHUNK_X - 1) {
+                    Chunks[cx + 1][cy][cz]->GenerateMesh();
+                    Chunks[cx + 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.x) % (int)(ChunkSize.x) == 0 && cx - 1 >= 0) {
+                    Chunks[cx - 1][cy][cz]->GenerateMesh();
+                    Chunks[cx - 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.z + 1) % (int)(ChunkSize.z) == 0 && cz + 1 <= MAX_CHUNK_Z - 1) {
+                    Chunks[cx][cy][cz + 1]->GenerateMesh();
+                    Chunks[cx][cy][cz + 1]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.z) % (int)(ChunkSize.z) == 0 && cz - 1 >= 0) {
+                    Chunks[cx][cy][cz - 1]->GenerateMesh();
+                    Chunks[cx][cy][cz - 1]->setupBuffer();
+                }
+
+                LastMouseCheckTime = 0.0f;
+            }
+        }
+
+        // 检测鼠标left键按下
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+            // 执行鼠标left键按下时的操作
+            if (SelectedAnyBlock) {
+                std::cout << "yes" << std::endl;
+                auto &cube = (*(map->_map))[SelectedBlockToDo.x][SelectedBlockToDo.y][SelectedBlockToDo.z];
+                cube = make_shared<Cube>();
+                cube->ID() = CB_EMPTY;
+                auto cx = SelectedBlockToDo.x / ChunkSize.x;
+                auto cy = SelectedBlockToDo.y / ChunkSize.y;
+                auto cz = SelectedBlockToDo.z / ChunkSize.z;
+                auto chunk = Chunks[cx][cy][cz];
+
+                vector<vec3> chunksToFlush;
+                map->flushExposedFaces(SelectedBlockToDo, chunksToFlush);
+                chunk->GenerateMesh();
+                chunk->setupBuffer();
+
+                if ((int)(SelectedBlockToDo.x + 1) % (int)(ChunkSize.x) == 0 && cx + 1 <= MAX_CHUNK_X - 1) {
+                    Chunks[cx + 1][cy][cz]->GenerateMesh();
+                    Chunks[cx + 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.x) % (int)(ChunkSize.x) == 0 && cx - 1 >= 0) {
+                    Chunks[cx - 1][cy][cz]->GenerateMesh();
+                    Chunks[cx - 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.z + 1) % (int)(ChunkSize.z) == 0 && cz + 1 <= MAX_CHUNK_Z - 1) {
+                    Chunks[cx][cy][cz + 1]->GenerateMesh();
+                    Chunks[cx][cy][cz + 1]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.z) % (int)(ChunkSize.z) == 0 && cz - 1 >= 0) {
+                    Chunks[cx][cy][cz - 1]->GenerateMesh();
+                    Chunks[cx][cy][cz - 1]->setupBuffer();
+                }
+
+                LastMouseCheckTime = 0.0f;
+            }
+        }
     }
 }
 
