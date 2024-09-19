@@ -660,11 +660,12 @@ void Scene::ProcessKeyInput() {
     static bool isJump = false;
     static float jumpTime = 0.0f;
     if (isJump == false && KeyPressed(window, GLFW_KEY_SPACE)) {
-        if (isJump == false && jumpTime <= 1.0f) {
-            isJump = true;
-            jumpTime += deltaTime;
-            player->camera.ProcessJump(deltaTime, map);
-        }
+        isJump = true;
+    }
+
+    if (isJump && jumpTime <= 0.2f) {
+        jumpTime += deltaTime;
+        player->camera.ProcessJump(deltaTime, map);
     }
     else {
         isJump = false;
