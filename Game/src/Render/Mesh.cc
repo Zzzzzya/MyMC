@@ -425,3 +425,34 @@ void ScreenMesh::setupBuffer() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
+
+void SelectedBlockChunk::init() {
+    glGenVertexArrays(1, &SelectedBlockVAO);
+    glGenBuffers(1, &SelectedBlockVBO);
+}
+
+void SelectedBlockChunk::setupBuffer() {
+    glBindVertexArray(SelectedBlockVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
+    glBufferData(GL_ARRAY_BUFFER, Cube::CubeVertice.size() * sizeof(Vertex), &Cube::CubeVertice[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void SelectedBlockChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    glBindVertexArray(SelectedBlockVAO);
+    glDrawArrays(GL_TRIANGLES, 0, Cube::CubeVertice.size());
+    glBindVertexArray(0);
+}

@@ -10,16 +10,17 @@ vector<shared_ptr<Shader>> Shader::DefaultShader = {};
 
 /* Shader 序号表请查阅 docs/Shader.md */
 void Shader::setUpDefaultShaders() {
-    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeMap.fs"));           // 0
-    DefaultShader.push_back(make_shared<Shader>("spark.vs", "spark.fs"));               // 1
-    DefaultShader.push_back(make_shared<Shader>("border.vs", "border.fs"));             // 2
-    DefaultShader.push_back(make_shared<Shader>("Sky.vs", "Sky.fs"));                   // 3
-    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeCloud.fs"));         // 4
-    DefaultShader.push_back(make_shared<Shader>("shadowMap.vs", "shadowMap.fs"));       // 5
-    DefaultShader.push_back(make_shared<Shader>("Sun.vs", "Sun.fs"));                   // 6
-    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeWater.fs"));         // 7
-    DefaultShader.push_back(make_shared<Shader>("Postprocess.vs", "Postprocess.fs"));   // 8
-    DefaultShader.push_back(make_shared<Shader>("CubeMapWater.vs", "CubeWaterSSR.fs")); // 9
+    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeMap.fs"));             // 0
+    DefaultShader.push_back(make_shared<Shader>("spark.vs", "spark.fs"));                 // 1
+    DefaultShader.push_back(make_shared<Shader>("border.vs", "border.fs"));               // 2
+    DefaultShader.push_back(make_shared<Shader>("Sky.vs", "Sky.fs"));                     // 3
+    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeCloud.fs"));           // 4
+    DefaultShader.push_back(make_shared<Shader>("shadowMap.vs", "shadowMap.fs"));         // 5
+    DefaultShader.push_back(make_shared<Shader>("Sun.vs", "Sun.fs"));                     // 6
+    DefaultShader.push_back(make_shared<Shader>("CubeMap.vs", "CubeWater.fs"));           // 7
+    DefaultShader.push_back(make_shared<Shader>("Postprocess.vs", "Postprocess.fs"));     // 8
+    DefaultShader.push_back(make_shared<Shader>("CubeMapWater.vs", "CubeWaterSSR.fs"));   // 9
+    DefaultShader.push_back(make_shared<Shader>("SelectedBlock.vs", "SelectedBlock.fs")); // 10
 }
 
 shared_ptr<Shader> Shader::GetDefaultShader(int i) {

@@ -15,6 +15,8 @@
 #define CB_DIAMOND 7
 #define CB_SAND 8
 
+#define CB_NUM 9
+
 #define CB_CLOUD 17
 #define CB_WATER 18
 
@@ -163,6 +165,16 @@ class WaterChunk {
     unsigned int WaterVAO, WaterVBO;
     vector<Vertex> WaterVertices;
     int WaterVersize = 0;
+    void init();
+    void setupBuffer();
+    void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);
+};
+
+class SelectedBlockChunk {
+  public:
+    unsigned int SelectedBlockVAO, SelectedBlockVBO;
+    vector<Vertex> SelectedBlockVertices;
+    int SelectedBlockVersize = 0;
     void init();
     void setupBuffer();
     void Draw(const mat4 &view, const mat4 &projection, float CubeMap = 2.0f);

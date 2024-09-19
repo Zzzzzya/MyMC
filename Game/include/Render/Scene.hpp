@@ -100,6 +100,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     float shadowBias = 0.088f;
     mat4 lightMatrix;
     bool ssrOn = false;
+    SelectedBlockChunk selectedBlockChunk;
 
     /* 可控类Setting */
     bool bVSync = false;
@@ -149,6 +150,7 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
     void PostProcessingDraw();
+    void SelectedBlockPreviewDraw();
 
     /**
      * @brief 场景剔除子模块

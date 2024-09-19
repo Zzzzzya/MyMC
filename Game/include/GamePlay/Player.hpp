@@ -4,6 +4,7 @@
 
 #include "Header.hpp"
 #include "Camera.hpp"
+#include "Mesh.hpp"
 
 class Player {
   public:
@@ -13,6 +14,8 @@ class Player {
 
     bool inWater = false;
     vec3 curBlockPos;
+
+    int CurBlockID = 1;
 };
 
 #endif

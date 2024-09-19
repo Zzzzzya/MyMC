@@ -164,6 +164,8 @@ void Scene::MainRender() {
     // PASS 4: PostProcessing
     PostProcessingDraw();
 
+    SelectedBlockPreviewDraw();
+
     SparkShaderDraw();
 }
 
@@ -236,6 +238,10 @@ int Scene::InitRender() {
     // SunChunk
     sunChunk.init();
     sunChunk.setupBuffer();
+
+    // SelectedBlockChunk
+    selectedBlockChunk.init();
+    selectedBlockChunk.setupBuffer();
 
     // FrameBuffers
     // 1. ShadowMap
@@ -549,6 +555,7 @@ void Scene::SelectedBlockShaderDraw() {
         auto WorldPos = vec3(SelectedBlockToDo.x, SelectedBlockToDo.y, -SelectedBlockToDo.z) * 2.0f;
         cube->GenerateVertices(SelectedBlockVertices, WorldPos);
         if (SelectedBlockVertices.size() != 0) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glBindVertexArray(SelectedBlockVAO);
             glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
             glBufferData(GL_ARRAY_BUFFER, SelectedBlockVertices.size() * sizeof(Vertex), &SelectedBlockVertices[0],
@@ -560,12 +567,14 @@ void Scene::SelectedBlockShaderDraw() {
             shader->use();
             shader->setMat4("view", view);
             shader->setMat4("projection", projection);
-            shader->setVec3("color", vec3(1.0f, 0.0f, 0.0f));
+            shader->setVec3("color", vec3(1.0f, 1.0f, 1.0f));
             glBindVertexArray(SelectedBlockVAO);
             glDrawArrays(GL_TRIANGLES, 0, SelectedBlockVertices.size());
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 }
@@ -612,13 +621,25 @@ void Scene::PostProcessingDraw() {
     glBindTexture(GL_TEXTURE_2D, ScreenBufferForSSR->tex);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    if (player->CurBlockID != 0) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[player->CurBlockID - 1]->id);
+        shader->setInt("hasBlock", 1);
+    }
+    else {
+        shader->setInt("hasBlock", 0);
+    }
 
     shader->setInt("screenTexture", 0);
     shader->setInt("scene", 1);
+    shader->setInt("cubeMap", 2);
     shader->setFloat("inWater", player->inWater ? 0.4 : 1.0f);
     screenMesh.Draw();
     glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_DEPTH_TEST);
+}
+
+void Scene::SelectedBlockPreviewDraw() {
 }
 
 void Scene::ProcessKeyInput() {
@@ -679,10 +700,14 @@ void Scene::ProcessKeyInput() {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
             // 执行鼠标right键按下时的操作
             if (SelectedAnyBlock) {
-                std::cout << "yes" << std::endl;
+                if (SelectedBlockToAdd.x < 0 || SelectedBlockToAdd.y < 0 || SelectedBlockToAdd.z < 0)
+                    return;
+                if (SelectedBlockToAdd.x >= map->mapSize.x || SelectedBlockToAdd.y >= map->mapSize.y ||
+                    SelectedBlockToAdd.z >= map->mapSize.z)
+                    return;
                 auto &cube = (*(map->_map))[SelectedBlockToAdd.x][SelectedBlockToAdd.y][SelectedBlockToAdd.z];
                 cube = make_shared<Cube>();
-                cube->ID() = CB_GRASS_BLOCK;
+                cube->ID() = player->CurBlockID;
                 auto cx = SelectedBlockToAdd.x / ChunkSize.x;
                 auto cy = SelectedBlockToAdd.y / ChunkSize.y;
                 auto cz = SelectedBlockToAdd.z / ChunkSize.z;
