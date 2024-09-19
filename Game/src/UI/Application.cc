@@ -165,6 +165,26 @@ void App::Waiting() {
         /**
          * @brief
          */
+
+        std::ofstream outFile("savegame.txt");
+        if (!outFile.is_open()) {
+            std::cerr << "无法打开文件进行写操作" << std::endl;
+            return;
+        }
+
+        auto map = *scene->map->_map;
+        for (const auto &layer : map) {
+            for (const auto &row : layer) {
+                for (const auto &cube : row) {
+                    if (cube != nullptr) {
+                        outFile << cube->type() << cube->ID() << std::endl;
+                    }
+                }
+            }
+        }
+
+        outFile.close();
+        std::cout << "游戏已保存" << std::endl;
     }
     ImGui::End();
 }

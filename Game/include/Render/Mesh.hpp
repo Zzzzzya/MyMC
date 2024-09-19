@@ -51,6 +51,7 @@ struct Mesh {
     virtual bool Occluded() const = 0;
     virtual bool Passed() const = 0;
     virtual bool RayPassed() const = 0;
+    virtual int type() const = 0;
     virtual ~Mesh() = default;
 };
 
@@ -74,6 +75,9 @@ struct Cube : public Mesh {
     virtual bool RayPassed() const override {
         return Passed();
     }
+    virtual int type() const override {
+        return 0;
+    }
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -94,6 +98,9 @@ struct Quad : public Mesh {
     virtual bool RayPassed() const override {
         return Passed();
     }
+    virtual int type() const override {
+        return 1;
+    }
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
 };
 
@@ -113,6 +120,9 @@ struct CrossQuad : public Mesh {
     }
     virtual bool RayPassed() const override {
         return false;
+    }
+    virtual int type() const override {
+        return 2;
     }
 
     virtual void GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const override;
