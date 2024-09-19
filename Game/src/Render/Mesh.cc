@@ -15,6 +15,15 @@ int Cube::GetShaderID() const {
     return CubeIdMap[CubeID].second;
 }
 
+static vector<vec3> normals = {
+    {1.0f, 0.0f, 0.0f},  // 右
+    {-1.0f, 0.0f, 0.0f}, // 左
+    {0.0f, 1.0f, 0.0f},  // 上
+    {0.0f, -1.0f, 0.0f}, // 下
+    {0.0f, 0.0f, 1.0f},  // 前
+    {0.0f, 0.0f, -1.0f}, // 后
+};
+
 void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
     for (int p = 0; p < 6; p++) {
         if (Exposed[p]) {
@@ -24,6 +33,7 @@ void Cube::GenerateVertices(vector<Vertex> &vertices, vec3 WorldPos) const {
                 vertex.position += WorldPos;
                 vertex.cubeID = CubeID;
                 vertex.faceID = 0;
+                vertex.normal = normals[p];
                 vertices.push_back(vertex);
             }
         }
@@ -171,6 +181,10 @@ void Chunk::GenerateMesh() {
                     continue;
                 if (mesh->ID() == CB_CLOUD) {
                     mesh->GenerateVertices(map->cloudChunk.CloudVertices, WorldPos + vec3(i, j, -k) * 2.0f);
+                    continue;
+                }
+                if (mesh->ID() == CB_WATER) {
+                    mesh->GenerateVertices(map->waterChunk.WaterVertices, WorldPos + vec3(i, j, -k) * 2.0f);
                     continue;
                 }
                 mesh->GenerateVertices(vertices, WorldPos + vec3(i, j, -k) * 2.0f);
@@ -332,4 +346,113 @@ void SunChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
         glDrawArrays(GL_TRIANGLES, 0, SunVersize);
         glBindVertexArray(0);
     }
+}
+
+void WaterChunk::init() {
+    glGenVertexArrays(1, &WaterVAO);
+    glGenBuffers(1, &WaterVBO);
+}
+
+void WaterChunk::setupBuffer() {
+    glBindVertexArray(WaterVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
+    glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    WaterVersize = WaterVertices.size();
+}
+
+void WaterChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    if (WaterVersize != 0) {
+        glBindVertexArray(WaterVAO);
+        glDrawArrays(GL_TRIANGLES, 0, WaterVersize);
+        glBindVertexArray(0);
+    }
+}
+
+ScreenMesh::ScreenMesh() {
+}
+
+void ScreenMesh::init() {
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    GenerateMesh();
+
+    setupBuffer();
+}
+
+void ScreenMesh::Draw() {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindVertexArray(0);
+}
+
+void ScreenMesh::GenerateMesh() {
+    for (int i = 24; i < 30; i++) {
+        auto &ver = Cube::CubeVertice[i];
+        auto ver2D = Vertex2D(vec2(ver.position.x, ver.position.y), ver.texCoords);
+        vertices.push_back(ver2D);
+    }
+}
+
+void ScreenMesh::setupBuffer() {
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex2D), &vertices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, texCoords));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void SelectedBlockChunk::init() {
+    glGenVertexArrays(1, &SelectedBlockVAO);
+    glGenBuffers(1, &SelectedBlockVBO);
+}
+
+void SelectedBlockChunk::setupBuffer() {
+    glBindVertexArray(SelectedBlockVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
+    glBufferData(GL_ARRAY_BUFFER, Cube::CubeVertice.size() * sizeof(Vertex), &Cube::CubeVertice[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, faceID));
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, cubeID));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, CubeMapTex));
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void SelectedBlockChunk::Draw(const mat4 &view, const mat4 &projection, float CubeMap) {
+    glBindVertexArray(SelectedBlockVAO);
+    glDrawArrays(GL_TRIANGLES, 0, Cube::CubeVertice.size());
+    glBindVertexArray(0);
 }

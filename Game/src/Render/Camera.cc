@@ -57,9 +57,9 @@ void Camera::ProcessCursorPos(float offsetX, float offsetY) {
 }
 
 void Camera::ProcessScroll(float offsetY) {
-    fov -= offsetY;
-    fov = std::fmin(fov, 90.0f);
-    fov = std::fmax(fov, 1.0f);
+    // fov -= offsetY;
+    // fov = std::fmin(fov, 90.0f);
+    // fov = std::fmax(fov, 1.0f);
 }
 
 void Camera::ProcessDropDown(float deltaTime, const shared_ptr<Map> &map) {

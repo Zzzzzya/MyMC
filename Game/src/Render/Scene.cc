@@ -63,6 +63,23 @@ void Scene::MainLoop() {
         if (app.state == App::State::RUN)
             SelectedAnyBlock = map->ViewRayTrace(player->camera.position, player->camera.front, SelectedBlockToDo,
                                                  SelectedBlockToAdd, viewRayTraceDistance, viewRayTraceStep);
+
+        // 2. 更新Player状态
+        if (app.state == App::State::RUN) {
+            auto pos = player->camera.position;
+            player->curBlockPos = vec3(floor(pos.x / (2.0f)), floor(pos.y / (2.0f)), floor(pos.z / (-2.0f)));
+            if (player->curBlockPos.x < 0 || player->curBlockPos.x >= map->mapSize.x || player->curBlockPos.y < 0 ||
+                player->curBlockPos.y >= map->mapSize.y || player->curBlockPos.z < 0 ||
+                player->curBlockPos.z >= map->mapSize.z)
+                player->inWater = false;
+            else {
+                if ((*(map->_map))[player->curBlockPos.x][player->curBlockPos.y][player->curBlockPos.z]->ID() ==
+                    CB_WATER)
+                    player->inWater = true;
+                else
+                    player->inWater = false;
+            }
+        }
     }
 }
 
@@ -97,7 +114,7 @@ void Scene::CreatingNewGame() {
 
 void Scene::MainRender() {
     /* Main Render 真正渲染场景的地方 */
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBuffer->FBO);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -105,12 +122,17 @@ void Scene::MainRender() {
 
     UpdateVP();
 
+    // PASS 1: ShadowMap
     ShadowMapDraw();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // PASS 2: MainRender
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBuffer->FBO);
     glViewport(0, 0, display_w, display_h);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    SkyDraw();
 
     CubeShaderDraw();
 
@@ -118,9 +140,31 @@ void Scene::MainRender() {
 
     CloudDraw();
 
-    SkyDraw();
+    WaterDraw();
 
     SelectedBlockShaderDraw();
+
+    // PASS 3: SSR
+
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenBufferForSSR->FBO);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (ssrOn) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, ScreenBuffer->FBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ScreenBufferForSSR->FBO);
+        glBlitFramebuffer(0, 0, display_w, display_h, 0, 0, display_w, display_h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+        glEnable(GL_DEPTH_TEST);
+
+        WaterSSRDraw();
+    }
+
+    // PASS 4: PostProcessing
+    PostProcessingDraw();
+
+    SelectedBlockPreviewDraw();
 
     SparkShaderDraw();
 }
@@ -141,6 +185,8 @@ int Scene::InitWindow(void (*cursorPosCallback)(GLFWwindow *, double, double),
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    // 设置窗口提示，禁止窗口缩放
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     // Create window with GLFW
     window = glfwCreateWindow(imageWidth, imageHeight, "MC", NULL, NULL);
@@ -187,14 +233,23 @@ int Scene::InitRender() {
 
     // screenQuad
     screenQuad.init();
+    screenMesh.init();
 
     // SunChunk
     sunChunk.init();
     sunChunk.setupBuffer();
 
+    // SelectedBlockChunk
+    selectedBlockChunk.init();
+    selectedBlockChunk.setupBuffer();
+
     // FrameBuffers
     // 1. ShadowMap
     shadowMap = make_shared<FrameBufferDepthMap>(2048, 2048);
+    // 2. ScreenBuffer
+    ScreenBuffer = make_shared<FrameBuffer>(imageWidth, imageHeight);
+    // 3. ScreenBufferForSSR
+    ScreenBufferForSSR = make_shared<FrameBufferOnlyRBO>(imageWidth, imageHeight);
 
     return 0;
 }
@@ -228,6 +283,10 @@ int Scene::InitMap() {
             }
 
     map->cloudChunk.setupBuffer();
+
+    map->waterChunk.init();
+    map->waterChunk.setupBuffer();
+
     return 0;
 }
 
@@ -324,7 +383,7 @@ bool Scene::FrustumCulling(Chunk &chunk) {
 void Scene::UpdateVP() {
     // MVPs
     view = player->camera.ViewMat();
-    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 1000.0f);
+    projection = glm::perspective(glm::radians(player->camera.fov), (float)display_w / (float)display_h, 0.1f, 300.0f);
 }
 
 void Scene::CubeShaderDraw() {
@@ -367,6 +426,57 @@ void Scene::CubeShaderDraw() {
             }
 }
 
+void Scene::WaterDraw() {
+    glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+
+    // 启用模板缓冲写入
+
+    auto waterShader = Shader::GetDefaultShader(7);
+    waterShader->use();
+    waterShader->setMat4("view", view);
+    waterShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE30);
+    glBindTexture(GL_TEXTURE_2D, shadowMap->tex);
+    glActiveTexture(GL_TEXTURE29);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    glActiveTexture(GL_TEXTURE28);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->depthTex);
+    glActiveTexture(GL_TEXTURE0);
+
+    waterShader->setInt("shadowMap", 30);
+    waterShader->setFloat("shadowBias", shadowBias * 0.01);
+    waterShader->setMat4("lightMatrix", lightMatrix);
+
+    map->waterChunk.Draw(view, projection, 1.0f);
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+}
+
+void Scene::WaterSSRDraw() {
+    auto waterSSRShader = Shader::GetDefaultShader(9);
+    waterSSRShader->use();
+    waterSSRShader->setMat4("view", view);
+    waterSSRShader->setMat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE30);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->depthTex);
+    glActiveTexture(GL_TEXTURE29);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    glActiveTexture(GL_TEXTURE0);
+
+    waterSSRShader->setInt("depth", 30);
+    waterSSRShader->setInt("scene", 29);
+    waterSSRShader->setVec3("cameraPos", player->camera.position);
+
+    map->waterChunk.Draw(view, projection, 1.0f);
+}
+
 void Scene::ShadowMapDraw() {
     glBindFramebuffer(GL_FRAMEBUFFER, shadowMap->FBO);
     glViewport(0, 0, 2048, 2048);
@@ -392,7 +502,7 @@ void Scene::ShadowMapDraw() {
             }
 
     // glCullFace(GL_BACK);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Scene::CloudDraw() {
@@ -420,7 +530,7 @@ void Scene::SkyDraw() {
     SkyShader->setMat4("projection", projection);
 
     glActiveTexture(GL_TEXTURE29);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[7]->id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[CubeMap::DefaultCubeMaps.size() - 1]->id);
     SkyShader->setInt("Sky", 29);
 
     // SkyShader->setHandle("Sky", CubeMap::DefaultCubeMaps[7]->handle);
@@ -435,7 +545,6 @@ void Scene::SelectedBlockShaderDraw() {
         return;
 
     // 渲染选中物体
-    // TODO: 预选物体渲染抽离到函数
     if (SelectedAnyBlock) {
         if (SelectedBlockVertices.size() != 0) {
             SelectedBlockVertices.clear();
@@ -446,6 +555,7 @@ void Scene::SelectedBlockShaderDraw() {
         auto WorldPos = vec3(SelectedBlockToDo.x, SelectedBlockToDo.y, -SelectedBlockToDo.z) * 2.0f;
         cube->GenerateVertices(SelectedBlockVertices, WorldPos);
         if (SelectedBlockVertices.size() != 0) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glBindVertexArray(SelectedBlockVAO);
             glBindBuffer(GL_ARRAY_BUFFER, SelectedBlockVBO);
             glBufferData(GL_ARRAY_BUFFER, SelectedBlockVertices.size() * sizeof(Vertex), &SelectedBlockVertices[0],
@@ -457,12 +567,14 @@ void Scene::SelectedBlockShaderDraw() {
             shader->use();
             shader->setMat4("view", view);
             shader->setMat4("projection", projection);
-            shader->setVec3("color", vec3(1.0f, 0.0f, 0.0f));
+            shader->setVec3("color", vec3(1.0f, 1.0f, 1.0f));
             glBindVertexArray(SelectedBlockVAO);
             glDrawArrays(GL_TRIANGLES, 0, SelectedBlockVertices.size());
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
+
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 }
@@ -477,7 +589,7 @@ void Scene::SunDraw() {
 
 void Scene::SparkShaderDraw() {
     // 渲染光标
-    // TODO：光标渲染抽离到函数
+
     glDisable(GL_DEPTH_TEST);
     auto sparkShader = Shader::GetDefaultShader(1);
     static mat4 sparkModel = glm::scale(glm::mat4(1.0f), vec3((float)imageHeight / imageWidth, 1.0f, 1.0f) * 0.035f);
@@ -493,6 +605,41 @@ void Scene::SparkShaderDraw() {
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_DEPTH_TEST);
+}
+
+void Scene::PostProcessingDraw() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_DEPTH_TEST);
+    auto shader = Shader::GetDefaultShader(8);
+    shader->use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ScreenBufferForSSR->tex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, ScreenBuffer->tex);
+    if (player->CurBlockID != 0) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap::DefaultCubeMaps[player->CurBlockID - 1]->id);
+        shader->setInt("hasBlock", 1);
+    }
+    else {
+        shader->setInt("hasBlock", 0);
+    }
+
+    shader->setInt("screenTexture", 0);
+    shader->setInt("scene", 1);
+    shader->setInt("cubeMap", 2);
+    shader->setFloat("inWater", player->inWater ? 0.4 : 1.0f);
+    screenMesh.Draw();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Scene::SelectedBlockPreviewDraw() {
 }
 
 void Scene::ProcessKeyInput() {
@@ -513,11 +660,12 @@ void Scene::ProcessKeyInput() {
     static bool isJump = false;
     static float jumpTime = 0.0f;
     if (isJump == false && KeyPressed(window, GLFW_KEY_SPACE)) {
-        if (isJump == false && jumpTime <= 1.0f) {
-            isJump = true;
-            jumpTime += deltaTime;
-            player->camera.ProcessJump(deltaTime, map);
-        }
+        isJump = true;
+    }
+
+    if (isJump && jumpTime <= 0.2f) {
+        jumpTime += deltaTime;
+        player->camera.ProcessJump(deltaTime, map);
     }
     else {
         isJump = false;
@@ -545,6 +693,91 @@ void Scene::ProcessKeyInput() {
     if (KeyPressed(window, GLFW_KEY_O)) {
         if (app.state == App::State::PICTURE)
             app.state = App::State::RUN;
+    }
+
+    LastMouseCheckTime += deltaTime;
+    if (LastMouseCheckTime >= mouseCheckInterval) {
+        // 检测鼠标right键按下
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+            // 执行鼠标right键按下时的操作
+            if (SelectedAnyBlock) {
+                if (SelectedBlockToAdd.x < 0 || SelectedBlockToAdd.y < 0 || SelectedBlockToAdd.z < 0)
+                    return;
+                if (SelectedBlockToAdd.x >= map->mapSize.x || SelectedBlockToAdd.y >= map->mapSize.y ||
+                    SelectedBlockToAdd.z >= map->mapSize.z)
+                    return;
+                auto &cube = (*(map->_map))[SelectedBlockToAdd.x][SelectedBlockToAdd.y][SelectedBlockToAdd.z];
+                cube = make_shared<Cube>();
+                cube->ID() = player->CurBlockID;
+                auto cx = SelectedBlockToAdd.x / ChunkSize.x;
+                auto cy = SelectedBlockToAdd.y / ChunkSize.y;
+                auto cz = SelectedBlockToAdd.z / ChunkSize.z;
+                auto chunk = Chunks[cx][cy][cz];
+
+                vector<vec3> chunksToFlush;
+                map->flushExposedFaces(SelectedBlockToAdd, chunksToFlush);
+                chunk->GenerateMesh();
+                chunk->setupBuffer();
+
+                if ((int)(SelectedBlockToAdd.x + 1) % (int)(ChunkSize.x) == 0 && cx + 1 <= MAX_CHUNK_X - 1) {
+                    Chunks[cx + 1][cy][cz]->GenerateMesh();
+                    Chunks[cx + 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.x) % (int)(ChunkSize.x) == 0 && cx - 1 >= 0) {
+                    Chunks[cx - 1][cy][cz]->GenerateMesh();
+                    Chunks[cx - 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.z + 1) % (int)(ChunkSize.z) == 0 && cz + 1 <= MAX_CHUNK_Z - 1) {
+                    Chunks[cx][cy][cz + 1]->GenerateMesh();
+                    Chunks[cx][cy][cz + 1]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToAdd.z) % (int)(ChunkSize.z) == 0 && cz - 1 >= 0) {
+                    Chunks[cx][cy][cz - 1]->GenerateMesh();
+                    Chunks[cx][cy][cz - 1]->setupBuffer();
+                }
+
+                LastMouseCheckTime = 0.0f;
+            }
+        }
+
+        // 检测鼠标left键按下
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+            // 执行鼠标left键按下时的操作
+            if (SelectedAnyBlock) {
+                std::cout << "yes" << std::endl;
+                auto &cube = (*(map->_map))[SelectedBlockToDo.x][SelectedBlockToDo.y][SelectedBlockToDo.z];
+                cube = make_shared<Cube>();
+                cube->ID() = CB_EMPTY;
+                auto cx = SelectedBlockToDo.x / ChunkSize.x;
+                auto cy = SelectedBlockToDo.y / ChunkSize.y;
+                auto cz = SelectedBlockToDo.z / ChunkSize.z;
+                auto chunk = Chunks[cx][cy][cz];
+
+                vector<vec3> chunksToFlush;
+                map->flushExposedFaces(SelectedBlockToDo, chunksToFlush);
+                chunk->GenerateMesh();
+                chunk->setupBuffer();
+
+                if ((int)(SelectedBlockToDo.x + 1) % (int)(ChunkSize.x) == 0 && cx + 1 <= MAX_CHUNK_X - 1) {
+                    Chunks[cx + 1][cy][cz]->GenerateMesh();
+                    Chunks[cx + 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.x) % (int)(ChunkSize.x) == 0 && cx - 1 >= 0) {
+                    Chunks[cx - 1][cy][cz]->GenerateMesh();
+                    Chunks[cx - 1][cy][cz]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.z + 1) % (int)(ChunkSize.z) == 0 && cz + 1 <= MAX_CHUNK_Z - 1) {
+                    Chunks[cx][cy][cz + 1]->GenerateMesh();
+                    Chunks[cx][cy][cz + 1]->setupBuffer();
+                }
+                if ((int)(SelectedBlockToDo.z) % (int)(ChunkSize.z) == 0 && cz - 1 >= 0) {
+                    Chunks[cx][cy][cz - 1]->GenerateMesh();
+                    Chunks[cx][cy][cz - 1]->setupBuffer();
+                }
+
+                LastMouseCheckTime = 0.0f;
+            }
+        }
     }
 }
 

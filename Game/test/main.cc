@@ -43,4 +43,26 @@ void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset) {
     if (!scene->cursorInWindow)
         return;
     scene->player->camera.ProcessScroll(yoffset);
+    if (scene->app.state == App::State::RUN) {
+        static float off = 0.0f;
+        static float noff = 0.0f;
+        if (yoffset > 0) {
+            off += yoffset;
+            noff = 0.0f;
+        }
+        else {
+            noff += yoffset;
+            off = 0.0f;
+        }
+        if (off > 1.0f) {
+            scene->player->CurBlockID++;
+            scene->player->CurBlockID %= CB_NUM;
+            off = 0.0f;
+        }
+        if (noff < -1.0f) {
+            scene->player->CurBlockID--;
+            scene->player->CurBlockID = (scene->player->CurBlockID + CB_NUM) % CB_NUM;
+            noff = 0.0f;
+        }
+    }
 };

@@ -9,6 +9,10 @@ class FrameBuffer {
     FrameBuffer(int, int);
     unsigned int FBO;
     unsigned int tex;
+    unsigned int rbo;
+    unsigned int depthTex;
+    unsigned int normalTex;
+    GLuint depthStencilTex;
 
     void setUpFrameBuffer(int, int);
 };
@@ -18,6 +22,16 @@ class FrameBufferDepthMap {
     FrameBufferDepthMap(int, int);
     unsigned int FBO;
     unsigned int tex;
+
+    void setUpFrameBuffer(int, int);
+};
+
+class FrameBufferOnlyRBO {
+  public:
+    FrameBufferOnlyRBO(int, int);
+    unsigned int FBO;
+    unsigned int tex;
+    unsigned int rbo;
 
     void setUpFrameBuffer(int, int);
 };

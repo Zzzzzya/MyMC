@@ -62,6 +62,7 @@ class Map {
     PerlinNoise2D noiseLayer3;
     vector<vector<int>> heightMap;
 
+    WaterChunk waterChunk;
     CloudChunk cloudChunk;
 
     void InitMap();
@@ -80,6 +81,7 @@ class Map {
     bool CheckHaveSomething(const vec3 &pos) const;
     bool ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis = 10.0f,
                       float step = 0.1f) const;
+    void flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate);
 
   private:
     void resizeMap();

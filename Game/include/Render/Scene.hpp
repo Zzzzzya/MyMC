@@ -81,19 +81,26 @@ class Scene : public std::enable_shared_from_this<Scene> {
     vec3 SelectedBlockToAdd = vec3(0.0f, 0.0f, 0.0f);
     unsigned int SelectedBlockVAO, SelectedBlockVBO;
     vector<Vertex> SelectedBlockVertices;
+    float LastMouseCheckTime = 0.0f;
+    float mouseCheckInterval = 0.3f;
 
     /* Render相关 */
     mat4 view;
     mat4 projection;
-    float maxCullingDistance = 500.0f;
+    float maxCullingDistance = 300.0f;
     Frustum frustum;
     ScreenQuad screenQuad;
+    ScreenMesh screenMesh;
+    shared_ptr<FrameBuffer> ScreenBuffer;
+    shared_ptr<FrameBufferOnlyRBO> ScreenBufferForSSR;
     shared_ptr<FrameBufferDepthMap> shadowMap;
     SunChunk sunChunk;
     vec3 SunPosition = vec3(0.0f, 100.0f, 0.0f);
     vec3 SunLightVec = vec3(1.0f, -1.0f, -1.0f);
-    float shadowBias = 0.038f;
+    float shadowBias = 0.088f;
     mat4 lightMatrix;
+    bool ssrOn = false;
+    SelectedBlockChunk selectedBlockChunk;
 
     /* 可控类Setting */
     bool bVSync = false;
@@ -135,11 +142,15 @@ class Scene : public std::enable_shared_from_this<Scene> {
     void UpdateVP();
     void ShadowMapDraw();
     void CubeShaderDraw();
+    void WaterDraw();
+    void WaterSSRDraw();
     void CloudDraw();
     void SkyDraw();
     void SunDraw();
     void SelectedBlockShaderDraw();
     void SparkShaderDraw();
+    void PostProcessingDraw();
+    void SelectedBlockPreviewDraw();
 
     /**
      * @brief 场景剔除子模块

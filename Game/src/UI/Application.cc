@@ -38,9 +38,6 @@ void App::PrepareRender() {
     ImGui::Render();
 
     glfwGetFramebufferSize(scene->window, &scene->display_w, &scene->display_h);
-    glViewport(0, 0, scene->display_w, scene->display_h);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void App::ImGuiRender() {
@@ -112,6 +109,7 @@ void App::Setting() {
     // 1. 是否开启垂直同步
     ImGui::Checkbox("VSync", &scene->bVSync);
     glfwSwapInterval(scene->bVSync);
+    ImGui::Checkbox("SSR", &scene->ssrOn);
 
     // 2. 雾效设置
     ImGui::SliderFloat("fogDensity", &scene->fogDensity, 0.0f, 0.1f);
@@ -134,11 +132,7 @@ void App::Run() {
     if (scene->showFPS) {
         ImGui::Begin("FPS");
         ImGui::Text("FPS: %.1f", scene->fps);
-        ImGui::Text("Selected position: (%.1f, %.1f, %.1f)", scene->SelectedBlockToDo.x, scene->SelectedBlockToDo.y,
-                    scene->SelectedBlockToDo.z);
-        static auto N = vec3(0.0f, 1.0f, 0.0f);
-        auto trueFront = normalize(scene->player->camera.front - dot(scene->player->camera.front, N) * N);
-        ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", trueFront.x, trueFront.y, trueFront.z);
+        ImGui::Text("Selected Block: %d", scene->player->CurBlockID);
         ImGui::End();
     }
 }
@@ -164,6 +158,33 @@ void App::Waiting() {
 
     if (ImGui::Button("Settings")) {
         state = State::SETTING;
+    }
+
+    if (ImGui::Button("Save Game")) {
+        // TODO：保存游戏
+        /**
+         * @brief
+         */
+
+        std::ofstream outFile("savegame.txt");
+        if (!outFile.is_open()) {
+            std::cerr << "无法打开文件进行写操作" << std::endl;
+            return;
+        }
+
+        auto map = *scene->map->_map;
+        for (const auto &layer : map) {
+            for (const auto &row : layer) {
+                for (const auto &cube : row) {
+                    if (cube != nullptr) {
+                        outFile << cube->type() << cube->ID() << std::endl;
+                    }
+                }
+            }
+        }
+
+        outFile.close();
+        std::cout << "游戏已保存" << std::endl;
     }
     ImGui::End();
 }

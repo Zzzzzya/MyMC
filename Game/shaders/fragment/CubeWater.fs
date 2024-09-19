@@ -46,10 +46,8 @@ float ShadowCalculate(vec4 fragPosLightSpace) {
 
 void main() {
     // Color
-    vec4 Color = meshType == 0 ? texture(tex[index], TexCoordsCubeMap) : texture(tex2D[index], TexCoords);
-    if (Color.a < 0.1)
-        discard;
-
+    vec4 Color = vec4(38.0 / 255.0, 0.0 / 255.0, 191.0 / 255.0, 0.8f);
+    // vec4 Color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
     // Shadow
     vec4 fragPosLightSpace = lightMatrix * vec4(FragPos, 1.0);
     float shadow = ShadowCalculate(fragPosLightSpace);
@@ -63,6 +61,6 @@ void main() {
 
     // Final Color
     vec3 finalColor = fogColor;
-    FragColor = vec4(finalColor, 1.0f);
+    FragColor = Color;
     oNormal = Normal;
 }
