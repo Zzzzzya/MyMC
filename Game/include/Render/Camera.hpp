@@ -32,7 +32,7 @@ class Camera {
     bool GameMode_Survival = true;
 
   public:
-    Camera(const vec3 &pos);
+    Camera(const vec3 &pos, const vec3 &front = vec3(0.0f, 0.0f, -1.0f), const vec3 &up = vec3(0.0f, 1.0f, 0.0f));
     mat4 ViewMat() const;
     mat4 ViewBackMat() const;
     void ProcessKeyBoard(Movement move, float deltaTime, shared_ptr<Map> map);
@@ -40,8 +40,9 @@ class Camera {
     void ProcessScroll(float offsetY);
     void ProcessDropDown(float deltaTime, const shared_ptr<Map> &map);
     void ProcessJump(float deltaTime, const shared_ptr<Map> &map);
+    void changeFront(const vec3 &newFront);
+    void updateCameraVectors();
 
   private:
-    void updateCameraVectors();
 };
 #endif

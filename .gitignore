@@ -13,3 +13,4 @@ Game/CMakeUserPresets.json
 Game/.vscode/
 Game/.clang-format
 Game/log/
+Game/build-release/

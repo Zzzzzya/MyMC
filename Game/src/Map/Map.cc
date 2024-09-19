@@ -1,7 +1,11 @@
 #include "Map.hpp"
 
 Map::Map(vec3 mapSize, int seed)
-    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Mesh>>>>>()), seed(seed) {
+    : mapSize(mapSize), _map(make_shared<vector<vector<vector<shared_ptr<Mesh>>>>>()), seed(seed),
+      noiseLayer1(1.0, 1.5, 2.0, 3), // 低频高振幅
+      noiseLayer2(2.0, 0.8, 2.0, 3), // 中频中振幅
+      noiseLayer3(4.0, 0.3, 2.0, 3)  // 高频低振幅
+{
 }
 
 void Map::InitMap() {
@@ -30,7 +34,7 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
         return false;
     }
     auto &map = *(this->_map);
-    if (map[blockPos.x][blockPos.y][blockPos.z]->ID() != 0)
+    if (!map[blockPos.x][blockPos.y][blockPos.z]->RayPassed())
         return true;
     return false;
 }
@@ -38,23 +42,85 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
 bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis,
                        float step) const {
     // ensure the direction is normalized
+    vector<vec3> path;
+    path.push_back(GetBlockCoords(position));
     for (float i = 0; i < dis; i += step) {
         vec3 newPos = position + direction * i;
         auto blockPos = GetBlockCoords(newPos);
+        if (blockPos != path.back())
+            path.push_back(blockPos);
         if (CheckHaveSomething(blockPos)) {
             ToDo = blockPos;
-            ToAdd = direction * i;
+            if (path.size() < 2)
+                ToAdd = path[0];
+            else
+                ToAdd = path[path.size() - 2];
             return true;
         }
     }
     return false;
 }
 
+void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate) {
+    auto &map = *(this->_map);
+    int mapX = mapSize.x;
+    int mapY = mapSize.y;
+    int mapZ = mapSize.z;
+    // Set the Exposed attribute of each cube
+    int dx[] = {1, -1, 0, 0, 0, 0};
+    int dy[] = {0, 0, 1, -1, 0, 0};
+    int dz[] = {0, 0, 0, 0, -1, 1};
+    int ys[] = {1, 0, 3, 2, 5, 4};
+
+    auto i = block.x;
+    auto j = block.y;
+    auto k = block.z;
+
+    if (map[i][j][k]->ID() == 0) {
+        for (int p = 0; p < 6; p++) {
+            map[i][j][k]->Exposed[p] = 0;
+            int nx = i + dx[p];
+            int ny = j + dy[p];
+            int nz = k + dz[p];
+
+            // If the cube is on the edge of the map or the cube is exposed
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+                continue;
+            }
+            else {
+                if (map[nx][ny][nz]->ID() != CB_EMPTY)
+                    map[nx][ny][nz]->Exposed[ys[p]] = true;
+            }
+        }
+    }
+    else {
+        for (int p = 0; p < 6; p++) {
+            map[i][j][k]->Exposed[p] = 0;
+            int nx = i + dx[p];
+            int ny = j + dy[p];
+            int nz = k + dz[p];
+
+            // If the cube is on the edge of the map or the cube is exposed
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+                map[i][j][k]->Exposed[p] = true;
+            }
+            else {
+                if (map[nx][ny][nz]->ID() != CB_EMPTY)
+                    map[nx][ny][nz]->Exposed[ys[p]] = false;
+                if (map[i][j][k]->ID() == CB_WATER)
+                    map[i][j][k]->Exposed[p] = map[nx][ny][nz]->ID() == 0;
+                else
+                    map[i][j][k]->Exposed[p] = !map[nx][ny][nz]->Occluded();
+            }
+        }
+    }
+}
+
 bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {
     // Check the collision with the map
     // position wants to move as movVec
     vec3 newPos = position + movVec;
-    vec3 newPos2 = position - vec3(0.0f, 2.0f, 0.0f) + movVec;
+    vec3 newPos2 = position - vec3(0.0f, 3.0f, 0.0f) + movVec;
     auto blockPos = GetBlockCoords(newPos);
     auto blockPos2 = GetBlockCoords(newPos2);
     if (!CheckCollisionHelper(blockPos) || !CheckCollisionHelper(blockPos2))
@@ -108,6 +174,9 @@ void Map::generateMap() {
     // 目前顺序 : 树木 -> 地表草
     GenerateTrees();
     GenerateGrass();
+
+    // Step4 : 生成云朵
+    // GenerateClouds();
 }
 
 // Init Step 3 : Set the Expose attribute of each cube
@@ -130,13 +199,16 @@ void Map::setExposed() {
                     int nx = i + dx[p];
                     int ny = j + dy[p];
                     int nz = k + dz[p];
+
                     // If the cube is on the edge of the map or the cube is exposed
-                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ ||
-                        !map[nx][ny][nz]->Occluded()) {
+                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
                         map[i][j][k]->Exposed[p] = true;
                     }
                     else {
-                        map[i][j][k]->Exposed[p] = false;
+                        if (map[i][j][k]->ID() == CB_WATER)
+                            map[i][j][k]->Exposed[p] = map[nx][ny][nz]->ID() == 0;
+                        else
+                            map[i][j][k]->Exposed[p] = !map[nx][ny][nz]->Occluded();
                     }
                 }
             }
@@ -173,9 +245,18 @@ void Map::GenerateSurface() {
             double x = (double)i / mapX;
             double z = (double)k / mapZ;
             // double height = perlinNoise.GetValue(x, z);
-            double height = perlinNoise.GenerateTerrain(x, z);
+
+            double value1 = noiseLayer1.GenerateTerrain(x, z);
+            double value2 = noiseLayer2.GenerateTerrain(x, z);
+            double value3 = noiseLayer3.GenerateTerrain(x, z);
+
+            // 组合噪声值
+            double height = (value1 + value2 + value3) / 3.0;
             int earthLine = bedRockHeight + stoneHeight + dirtHeight;
-            int y = (int)(height * 40);
+
+            bool bCloud = perlinNoise.GenerateTerrain(x, z) > 0.5;
+
+            int y = (int)((height - 0.05) * 40);
 
             int maxHeight = std::min(mapY, earthLine + y);
 
@@ -183,6 +264,36 @@ void Map::GenerateSurface() {
             heightMap[i][k] = maxHeight - 1; // 草方格高度
             for (int j = maxHeight - 2; j >= earthLine; j--) {
                 map[i][j][k]->ID() = CB_DIRT_BLOCK;
+            }
+
+            static int dx[] = {1, -1, 0, 0, 1, -1, 1, -1};
+            static int dz[] = {0, 0, 1, -1, -1, 1, 1, -1};
+
+            if (maxHeight <= 37) {
+                for (int j = 37; j >= maxHeight; j--) {
+                    map[i][j][k]->ID() = CB_WATER;
+                }
+                map[i][maxHeight - 1][k]->ID() = CB_SAND;
+            }
+
+            if (map[i][37][k]->ID() != CB_WATER && map[i][37][k]->ID() != CB_EMPTY) {
+                for (int pp = -3; pp <= 3; pp++) {
+                    for (int kk = -3; kk <= 3; kk++) {
+                        if (i + pp >= 0 && i + pp < mapX && k + kk >= 0 && k + kk < mapZ) {
+                            if (map[i + pp][37][k + kk]->ID() == CB_WATER) {
+                                for (int hh = 37; hh < 40; hh++) {
+                                    if (map[i][hh][k]->ID() == CB_EMPTY)
+                                        break;
+                                    map[i][hh][k]->ID() = CB_SAND;
+                                }
+                            }
+                        }
+                    }
+                }
+                // map[i][37][k]->ID() = CB_SAND;
+            }
+            if (bCloud) {
+                map[i][88][k]->ID() = CB_CLOUD;
             }
         }
 }
@@ -199,6 +310,9 @@ void Map::GenerateTrees() {
                 int treeHeight = rand(7, 9);
                 int x = i + rand(0, 19);
                 int z = k + rand(0, 19);
+                if (rand(1, 100) < 90) {
+                    continue;
+                }
                 if (x >= mapX || z >= mapZ)
                     continue;
                 int y = heightMap[x][z];
@@ -218,12 +332,15 @@ void Map::GenerateGrass() {
     for (int i = 0; i < mapX; i++)
         for (int k = 0; k < mapZ; k++) {
             int y = heightMap[i][k];
-            if (map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY && map[i][y + 1][k]->ID() == QD_EMPTY &&
-                rand(0, 100) < 10) {
+            if (rand(0, 100) < 10 && map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY &&
+                map[i][y + 1][k]->ID() == QD_EMPTY) {
                 map[i][y + 1][k] = make_shared<CrossQuad>();
                 map[i][y + 1][k]->ID() = QD_GRASS;
             }
         }
+}
+
+void Map::GenerateClouds() {
 }
 
 // 周围一格内的坐标
