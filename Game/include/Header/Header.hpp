@@ -58,6 +58,18 @@ inline float distance2(const vec3 &a, const vec3 &b) {
     return pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2);
 }
 
+inline int getCPUCores() {
+#if defined(_WIN32)
+    SYSTEM_INFO info;
+    GetSystemInfo (&info);
+    return info.dwNumberOfProcessors;
+#elif defined(LINUX) || defined(SOLARIS) || defined(AIX)
+    return get_nprocs();   //GNU fuction
+#else
+#error  UNKNOWN OS!
+#endif
+}
+
 #include <thread>
 
 #include "Log/Logger.hpp"
