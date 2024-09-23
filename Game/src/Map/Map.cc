@@ -52,6 +52,12 @@ void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) con
                                     // TODO: Save the mapIOStruct to the disk
                                 });
     }
+
+    // 等待所有线程结束
+    for (auto &future : futures)
+    {
+        future.wait();
+    }
 }
 
 bool Map::CheckCollisionHelper(const vec3 &blockPos) const {
