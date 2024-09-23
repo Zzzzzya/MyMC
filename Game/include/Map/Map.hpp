@@ -5,7 +5,10 @@
 
 #include "Header.hpp"
 #include "Mesh.hpp"
+#include "IO/IOStruct.hpp"
 #include "noise/noise.h"
+#include <future>
+#include <typeinfo>
 
 class PerlinNoise2D {
   private:
@@ -49,6 +52,8 @@ class Map {
   public:
     Map(vec3 mapSize = vec3(20, 20, 20), int seed = 0);
 
+    std::shared_ptr<spdlog::logger> logger = Loggers::getLogger("Map");
+
     int seed;
     vec3 mapSize;
     shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> _map;
@@ -69,6 +74,7 @@ class Map {
     inline shared_ptr<vector<vector<vector<shared_ptr<Mesh>>>>> GetMap() const {
         return _map;
     }
+    void SaveMap(const std::string &worldName, const std::string &saveRoot) const;
     static inline vec3 GetBlockCoords(const vec3 &pos) {
         auto thePos = pos + vec3(1.0f, 1.0f, -1.0f);
         thePos.z = -thePos.z;

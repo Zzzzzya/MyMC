@@ -16,6 +16,44 @@ void Map::InitMap() {
     setExposed();
 }
 
+void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) const {
+    int parallerNum = getCPUCores();
+    int sliceNum = _map -> size() / parallerNum; // 向下取整
+    std::vector<std::future<void>> futures(parallerNum);
+
+    for (size_t i = 0; i < parallerNum; i++)
+    {
+        futures[i] = std::async(std::launch::async, [this, i, parallerNum, sliceNum, worldName, saveRoot]()
+                                {
+                                    int start = i * sliceNum;
+                                    int end = (i == parallerNum - 1) ? _map->size() : (i + 1) * sliceNum;
+                                    int mapY = _map->at(0).size();
+                                    int mapZ = _map->at(0).at(0).size();
+                                    std::vector<MeshIOStruct> meshIOStructs((end - start) * mapY * mapZ);
+
+                                    // 将 Map 转换为 MeshIOStruct
+                                    for (int x = start; x < end; x++)
+                                    {
+                                        for (int y = 0; y < _map->at(x).size(); y++)
+                                        {
+                                            for (int z = 0; z < _map->at(x).at(y).size(); z++)
+                                            {
+                                                auto &mesh = _map->at(x).at(y).at(z);
+                                                meshIOStructs[(x - start) * mapY * mapZ + y * mapZ + z] = MeshIOStruct{mesh->ID(), MeshType(mesh->type())};
+                                            }
+                                        }
+                                    }
+
+                                    // map 转换为 MapIOStruct
+                                    MapIOStruct mapIOStruct{seed, mapSize, meshIOStructs};
+
+                                    // TODO: Serialize the mapIOStruct
+
+                                    // TODO: Save the mapIOStruct to the disk
+                                });
+    }
+}
+
 bool Map::CheckCollisionHelper(const vec3 &blockPos) const {
     // true for permit to pass
     if (blockPos.x < 0 || blockPos.x >= mapSize.x || blockPos.y < 0 || blockPos.y >= mapSize.y || blockPos.z < 0 ||
@@ -40,7 +78,7 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
 }
 
 bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis,
-                       float step) const {
+                        float step) const {
     // ensure the direction is normalized
     vector<vec3> path;
     path.push_back(GetBlockCoords(position));
