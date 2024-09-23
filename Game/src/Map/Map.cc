@@ -47,7 +47,8 @@ void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) con
                                     // map 转换为 MapIOStruct
                                     MapIOStruct mapIOStruct{seed, mapSize, meshIOStructs};
 
-                                    // TODO: Serialize the mapIOStruct
+                                    // Serialize the mapIOStruct
+                                    auto serializedData = mapIOStruct.Serialize();
 
                                     // TODO: Save the mapIOStruct to the disk
                                 });
