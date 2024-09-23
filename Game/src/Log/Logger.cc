@@ -2,6 +2,10 @@
 
 spdlog::level::level_enum Loggers::global_level = spdlog::level::info;
 
+Loggers::Loggers() {}
+
+Loggers::~Loggers() {}
+
 spdlog::level::level_enum Loggers::getGlobalLevel()
 {
     return global_level;
