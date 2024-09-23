@@ -41,7 +41,7 @@ std::shared_ptr<spdlog::logger> Loggers::getLogger(const std::string &logger_nam
 }
 
 
-void Loggers::init()
+void Loggers::Init()
 {
     auto level = spdlog::level::debug;
     if (std::getenv("STAGE") != NULL)

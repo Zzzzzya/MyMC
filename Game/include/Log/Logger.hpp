@@ -16,7 +16,7 @@ class Loggers
 {
 public: 
     // 初始化日志系统
-    static void init();
+    static void Init();
     // 获取全局日志级别
     static spdlog::level::level_enum getGlobalLevel();
     // 根据日志文件名创建日志sink

@@ -9,7 +9,7 @@ void ProcessCursorPos(GLFWwindow *window, double xpos, double ypos);
 void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset);
 
 int main(int argc, char **argv) {
-    Loggers::init();
+    Loggers::Init();
 
     /* 世界初始化准备 */
     scene->InitScene(ProcessCursorPos, ProcessScroll);
