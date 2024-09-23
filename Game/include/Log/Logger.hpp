@@ -29,6 +29,10 @@ public:
 private:    
     // 全局日志级别静态成员变量
     static spdlog::level::level_enum global_level;
+    
+    // 私有构造函数与析构函数，禁止实例化
+    Loggers() = default;
+    ~Loggers() = default;
 };
 
 // 宏定义简化日志输出
