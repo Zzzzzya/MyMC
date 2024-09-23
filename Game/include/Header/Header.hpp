@@ -60,9 +60,19 @@ inline float distance2(const vec3 &a, const vec3 &b) {
 
 inline int getCPUCores() {
 #if defined(_WIN32)
-    SYSTEM_INFO info;
-    GetSystemInfo (&info);
-    return info.dwNumberOfProcessors;
+// 命令调取 Cpu 物理核数
+#define CpuCoreNum "wmic cpu get NumberOfCores"
+
+    FILE *fp = _popen(CpuCoreNum, "r");
+    if (fp == nullptr) {
+        return 0;
+    }
+    char buffer[1024];
+    fgets(buffer, sizeof(buffer), fp);
+    fgets(buffer, sizeof(buffer), fp);
+    _pclose(fp);
+    int coreNum = atoi(buffer);
+    return coreNum;
 #elif defined(LINUX) || defined(SOLARIS) || defined(AIX)
     return get_nprocs();   //GNU fuction
 #else
