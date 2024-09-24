@@ -3,17 +3,14 @@
 #ifndef IO_STRUCT_HPP
 #define IO_STRUCT_HPP
 
+#include "IOManager.hpp"
+
 typedef int ID;
 
 enum MeshType {
     CubeType = 0,
     QuadType = 1,
     CrossQuadType = 2
-};
-
-struct IOStruct {
-    virtual std::vector<char> Serialize() = 0;
-    virtual void Deserialize(const std::vector<char>& data) = 0;
 };
 
 struct MeshIOStruct : public IOStruct {
