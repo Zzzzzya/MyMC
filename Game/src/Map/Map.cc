@@ -8,7 +8,8 @@ Map::Map(vec3 mapSize, int seed)
 {
 }
 
-void Map::InitMap() {
+void Map::InitMap()
+{
     resizeMap();
 
     generateMap();
@@ -16,9 +17,10 @@ void Map::InitMap() {
     setExposed();
 }
 
-void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) const {
+void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) const
+{
     int parallerNum = getCPUCores();
-    int sliceNum = _map -> size() / parallerNum; // 向下取整
+    int sliceNum = _map->size() / parallerNum; // 向下取整
     std::vector<std::future<void>> futures(parallerNum);
 
     for (size_t i = 0; i < parallerNum; i++)
@@ -56,8 +58,7 @@ void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) con
 
                                     // 写入文件
                                     std::string saveFile = savePath + "/" + worldName + "_" + std::to_string(i) + ".map";
-                                    while(IOManager::Write(saveFile, mapIOStruct)) std::this_thread::sleep_for(std::chrono::seconds(1));
-                                });
+                                    while(IOManager::Write(saveFile, mapIOStruct)) std::this_thread::sleep_for(std::chrono::seconds(1)); });
     }
 
     // 等待所有线程结束
@@ -69,7 +70,8 @@ void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) con
     LOG_INFO(logger, "The world {} has been saved!", worldName);
 }
 
-void Map::LoadMap(const std::string &worldName, const std::string &saveRoot) {
+void Map::LoadMap(const std::string &worldName, const std::string &saveRoot)
+{
     resizeMap();
 
     std::string savePath = saveRoot + "/" + worldName;
@@ -99,9 +101,7 @@ void Map::LoadMap(const std::string &worldName, const std::string &saveRoot) {
     for (const auto &mapFile : mapFiles)
     {
         futures.emplace_back(std::async(std::launch::async, [mapFile, mapNum, this]()
-        {
-            return this->LoadMapSlice(mapFile, mapNum);
-        }));
+                                        { return this->LoadMapSlice(mapFile, mapNum); }));
     }
 
     for (auto &future : futures)
@@ -110,10 +110,12 @@ void Map::LoadMap(const std::string &worldName, const std::string &saveRoot) {
     }
 }
 
-bool Map::CheckCollisionHelper(const vec3 &blockPos) const {
+bool Map::CheckCollisionHelper(const vec3 &blockPos) const
+{
     // true for permit to pass
     if (blockPos.x < 0 || blockPos.x >= mapSize.x || blockPos.y < 0 || blockPos.y >= mapSize.y || blockPos.z < 0 ||
-        blockPos.z >= mapSize.z) {
+        blockPos.z >= mapSize.z)
+    {
         return true;
     }
     auto &map = *(this->_map);
@@ -122,9 +124,11 @@ bool Map::CheckCollisionHelper(const vec3 &blockPos) const {
     return false;
 }
 
-bool Map::CheckHaveSomething(const vec3 &blockPos) const {
+bool Map::CheckHaveSomething(const vec3 &blockPos) const
+{
     if (blockPos.x < 0 || blockPos.x >= mapSize.x || blockPos.y < 0 || blockPos.y >= mapSize.y || blockPos.z < 0 ||
-        blockPos.z >= mapSize.z) {
+        blockPos.z >= mapSize.z)
+    {
         return false;
     }
     auto &map = *(this->_map);
@@ -134,16 +138,19 @@ bool Map::CheckHaveSomething(const vec3 &blockPos) const {
 }
 
 bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, vec3 &ToAdd, float dis,
-                        float step) const {
+                       float step) const
+{
     // ensure the direction is normalized
     vector<vec3> path;
     path.push_back(GetBlockCoords(position));
-    for (float i = 0; i < dis; i += step) {
+    for (float i = 0; i < dis; i += step)
+    {
         vec3 newPos = position + direction * i;
         auto blockPos = GetBlockCoords(newPos);
         if (blockPos != path.back())
             path.push_back(blockPos);
-        if (CheckHaveSomething(blockPos)) {
+        if (CheckHaveSomething(blockPos))
+        {
             ToDo = blockPos;
             if (path.size() < 2)
                 ToAdd = path[0];
@@ -155,7 +162,8 @@ bool Map::ViewRayTrace(const vec3 &position, const vec3 &direction, vec3 &ToDo, 
     return false;
 }
 
-void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate) {
+void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate)
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
@@ -170,35 +178,43 @@ void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate) {
     auto j = block.y;
     auto k = block.z;
 
-    if (map[i][j][k]->ID() == 0) {
-        for (int p = 0; p < 6; p++) {
+    if (map[i][j][k]->ID() == 0)
+    {
+        for (int p = 0; p < 6; p++)
+        {
             map[i][j][k]->Exposed[p] = 0;
             int nx = i + dx[p];
             int ny = j + dy[p];
             int nz = k + dz[p];
 
             // If the cube is on the edge of the map or the cube is exposed
-            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ)
+            {
                 continue;
             }
-            else {
+            else
+            {
                 if (map[nx][ny][nz]->ID() != CB_EMPTY)
                     map[nx][ny][nz]->Exposed[ys[p]] = true;
             }
         }
     }
-    else {
-        for (int p = 0; p < 6; p++) {
+    else
+    {
+        for (int p = 0; p < 6; p++)
+        {
             map[i][j][k]->Exposed[p] = 0;
             int nx = i + dx[p];
             int ny = j + dy[p];
             int nz = k + dz[p];
 
             // If the cube is on the edge of the map or the cube is exposed
-            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+            if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ)
+            {
                 map[i][j][k]->Exposed[p] = true;
             }
-            else {
+            else
+            {
                 if (map[nx][ny][nz]->ID() != CB_EMPTY)
                     map[nx][ny][nz]->Exposed[ys[p]] = false;
                 if (map[i][j][k]->ID() == CB_WATER)
@@ -210,7 +226,8 @@ void Map::flushExposedFaces(const vec3 &block, vector<vec3> &chunksToUpdate) {
     }
 }
 
-bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {
+bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const
+{
     // Check the collision with the map
     // position wants to move as movVec
     vec3 newPos = position + movVec;
@@ -222,7 +239,8 @@ bool Map::CheckCollision(const vec3 &position, vec3 &movVec) const {
     return true;
 }
 
-bool Map::CheckCollisionSingle(const vec3 &position) const {
+bool Map::CheckCollisionSingle(const vec3 &position) const
+{
     // true for permit to pass
     vec3 newPos = position;
     auto blockPos = GetBlockCoords(newPos);
@@ -232,18 +250,22 @@ bool Map::CheckCollisionSingle(const vec3 &position) const {
 }
 
 // Init Step 1 : Resize the map & fill the map with cubes 0
-void Map::resizeMap() {
+void Map::resizeMap()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
     int mapZ = mapSize.z;
 
     map.resize(mapX);
-    for (auto &rol : map) {
+    for (auto &rol : map)
+    {
         rol.resize(mapY);
-        for (auto &cubes : rol) {
+        for (auto &cubes : rol)
+        {
             cubes.resize(mapZ);
-            for (auto &cube : cubes) {
+            for (auto &cube : cubes)
+            {
                 cube = make_shared<Cube>(); // 默认为Cube
                 cube->ID() = 0;
             }
@@ -254,7 +276,8 @@ void Map::resizeMap() {
 }
 
 // Init Step 2 : Generate the map With Perlin Noise
-void Map::generateMap() {
+void Map::generateMap()
+{
     // Step1 : 地底铺设
     // 地底铺设固定层数的基岩 + 石头 + 土方块
     GenerateEarth();
@@ -274,7 +297,8 @@ void Map::generateMap() {
 }
 
 // Init Step 3 : Set the Expose attribute of each cube
-void Map::setExposed() {
+void Map::setExposed()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
@@ -286,19 +310,23 @@ void Map::setExposed() {
 
     for (int i = 0; i < mapX; i++)
         for (int j = 0; j < mapY; j++)
-            for (int k = 0; k < mapZ; k++) {
+            for (int k = 0; k < mapZ; k++)
+            {
                 if (map[i][j][k]->ID() == 0)
                     continue;
-                for (int p = 0; p < 6; p++) {
+                for (int p = 0; p < 6; p++)
+                {
                     int nx = i + dx[p];
                     int ny = j + dy[p];
                     int nz = k + dz[p];
 
                     // If the cube is on the edge of the map or the cube is exposed
-                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ) {
+                    if (nx < 0 || nx >= mapX || ny < 0 || ny >= mapY || nz < 0 || nz >= mapZ)
+                    {
                         map[i][j][k]->Exposed[p] = true;
                     }
-                    else {
+                    else
+                    {
                         if (map[i][j][k]->ID() == CB_WATER)
                             map[i][j][k]->Exposed[p] = map[nx][ny][nz]->ID() == 0;
                         else
@@ -308,7 +336,8 @@ void Map::setExposed() {
             }
 }
 
-void Map::GenerateEarth() {
+void Map::GenerateEarth()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
@@ -316,26 +345,32 @@ void Map::GenerateEarth() {
 
     for (int j = 0; j < mapY; j++)
         for (int i = 0; i < mapX; i++)
-            for (int k = 0; k < mapZ; k++) {
-                if (j < bedRockHeight) {
+            for (int k = 0; k < mapZ; k++)
+            {
+                if (j < bedRockHeight)
+                {
                     map[i][j][k]->ID() = CB_BEDROCK;
                 }
-                else if (j < bedRockHeight + stoneHeight) {
+                else if (j < bedRockHeight + stoneHeight)
+                {
                     map[i][j][k]->ID() = CB_STONE;
                 }
-                else if (j < bedRockHeight + stoneHeight + dirtHeight) {
+                else if (j < bedRockHeight + stoneHeight + dirtHeight)
+                {
                     map[i][j][k]->ID() = CB_DIRT_BLOCK;
                 }
             }
 }
 
-void Map::GenerateSurface() {
+void Map::GenerateSurface()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
     int mapZ = mapSize.z;
     for (int i = 0; i < mapX; i++)
-        for (int k = 0; k < mapZ; k++) {
+        for (int k = 0; k < mapZ; k++)
+        {
             double x = (double)i / mapX;
             double z = (double)k / mapZ;
             // double height = perlinNoise.GetValue(x, z);
@@ -356,26 +391,35 @@ void Map::GenerateSurface() {
 
             map[i][maxHeight - 1][k]->ID() = CB_GRASS_BLOCK;
             heightMap[i][k] = maxHeight - 1; // 草方格高度
-            for (int j = maxHeight - 2; j >= earthLine; j--) {
+            for (int j = maxHeight - 2; j >= earthLine; j--)
+            {
                 map[i][j][k]->ID() = CB_DIRT_BLOCK;
             }
 
             static int dx[] = {1, -1, 0, 0, 1, -1, 1, -1};
             static int dz[] = {0, 0, 1, -1, -1, 1, 1, -1};
 
-            if (maxHeight <= 37) {
-                for (int j = 37; j >= maxHeight; j--) {
+            if (maxHeight <= 37)
+            {
+                for (int j = 37; j >= maxHeight; j--)
+                {
                     map[i][j][k]->ID() = CB_WATER;
                 }
                 map[i][maxHeight - 1][k]->ID() = CB_SAND;
             }
 
-            if (map[i][37][k]->ID() != CB_WATER && map[i][37][k]->ID() != CB_EMPTY) {
-                for (int pp = -3; pp <= 3; pp++) {
-                    for (int kk = -3; kk <= 3; kk++) {
-                        if (i + pp >= 0 && i + pp < mapX && k + kk >= 0 && k + kk < mapZ) {
-                            if (map[i + pp][37][k + kk]->ID() == CB_WATER) {
-                                for (int hh = 37; hh < 40; hh++) {
+            if (map[i][37][k]->ID() != CB_WATER && map[i][37][k]->ID() != CB_EMPTY)
+            {
+                for (int pp = -3; pp <= 3; pp++)
+                {
+                    for (int kk = -3; kk <= 3; kk++)
+                    {
+                        if (i + pp >= 0 && i + pp < mapX && k + kk >= 0 && k + kk < mapZ)
+                        {
+                            if (map[i + pp][37][k + kk]->ID() == CB_WATER)
+                            {
+                                for (int hh = 37; hh < 40; hh++)
+                                {
                                     if (map[i][hh][k]->ID() == CB_EMPTY)
                                         break;
                                     map[i][hh][k]->ID() = CB_SAND;
@@ -386,31 +430,37 @@ void Map::GenerateSurface() {
                 }
                 // map[i][37][k]->ID() = CB_SAND;
             }
-            if (bCloud) {
+            if (bCloud)
+            {
                 map[i][88][k]->ID() = CB_CLOUD;
             }
         }
 }
 
-void Map::GenerateTrees() {
+void Map::GenerateTrees()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
     int mapZ = mapSize.z;
     for (int i = 0; i < mapX; i += 20)
-        for (int k = 0; k < mapZ; k += 20) {
+        for (int k = 0; k < mapZ; k += 20)
+        {
             int treeNum = rand(1, 3);
-            for (int t = 0; t < treeNum; t++) {
+            for (int t = 0; t < treeNum; t++)
+            {
                 int treeHeight = rand(7, 9);
                 int x = i + rand(0, 19);
                 int z = k + rand(0, 19);
-                if (rand(1, 100) < 90) {
+                if (rand(1, 100) < 90)
+                {
                     continue;
                 }
                 if (x >= mapX || z >= mapZ)
                     continue;
                 int y = heightMap[x][z];
-                if (CheckIfCanContainsATree(x, y, z, treeHeight)) {
+                if (CheckIfCanContainsATree(x, y, z, treeHeight))
+                {
                     auto type = rand(0, 7);
                     GenerateATree(x, y, z, treeHeight, type == 1 ? 1 : 0);
                 }
@@ -418,49 +468,49 @@ void Map::GenerateTrees() {
         }
 }
 
-void Map::GenerateGrass() {
+void Map::GenerateGrass()
+{
     auto &map = *(this->_map);
     int mapX = mapSize.x;
     int mapY = mapSize.y;
     int mapZ = mapSize.z;
     for (int i = 0; i < mapX; i++)
-        for (int k = 0; k < mapZ; k++) {
+        for (int k = 0; k < mapZ; k++)
+        {
             int y = heightMap[i][k];
             if (rand(0, 100) < 10 && map[i][y][k]->ID() == CB_GRASS_BLOCK && y + 1 < mapY &&
-                map[i][y + 1][k]->ID() == QD_EMPTY) {
+                map[i][y + 1][k]->ID() == QD_EMPTY)
+            {
                 map[i][y + 1][k] = make_shared<CrossQuad>();
                 map[i][y + 1][k]->ID() = QD_GRASS;
             }
         }
 }
 
-void Map::GenerateClouds() {
+void Map::GenerateClouds()
+{
 }
 
 // 周围一格内的坐标
 static std::vector<vec2> d1 = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
 
 // 周围两格内的坐标
-static std::vector<vec2> d2 = {{1, 0},   {-1, 0},  {0, 1},  {0, -1}, {1, 1},  {-1, -1}, {1, -1},
-                               {-1, 1},  {2, 0},   {-2, 0}, {0, 2},  {0, -2}, {2, 1},   {2, -1},
-                               {-2, 1},  {-2, -1}, {1, 2},  {-1, 2}, {1, -2}, {-1, -2}, {2, 2},
-                               {-2, -2}, {2, -2},  {-2, 2}, {1, 1},  {1, -1}, {-1, 1},  {-1, -1}};
+static std::vector<vec2> d2 = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}, {2, 0}, {-2, 0}, {0, 2}, {0, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
 // 周围三格内的坐标
 static std::vector<vec2> d3 = {
-    {1, 0}, {-1, 0},  {0, 1},  {0, -1},  {1, 1}, {-1, -1}, {1, -1}, {-1, 1},  {2, 0}, {-2, 0},  {0, 2},  {0, -2},
-    {2, 1}, {2, -1},  {-2, 1}, {-2, -1}, {1, 2}, {-1, 2},  {1, -2}, {-1, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2},
-    {1, 1}, {1, -1},  {-1, 1}, {-1, -1}, {3, 0}, {-3, 0},  {0, 3},  {0, -3},  {3, 1}, {3, -1},  {-3, 1}, {-3, -1},
-    {1, 3}, {-1, 3},  {1, -3}, {-1, -3}, {2, 3}, {2, -3},  {-2, 3}, {-2, -3}, {3, 2}, {3, -2},  {-3, 2}, {-3, -2},
-    {3, 3}, {-3, -3}, {3, -3}, {-3, 3},  {1, 2}, {-1, 2},  {1, -2}, {-1, -2}, {2, 1}, {-2, 1},  {2, -1}, {-2, -1}};
+    {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}, {2, 0}, {-2, 0}, {0, 2}, {0, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {3, 0}, {-3, 0}, {0, 3}, {0, -3}, {3, 1}, {3, -1}, {-3, 1}, {-3, -1}, {1, 3}, {-1, 3}, {1, -3}, {-1, -3}, {2, 3}, {2, -3}, {-2, 3}, {-2, -3}, {3, 2}, {3, -2}, {-3, 2}, {-3, -2}, {3, 3}, {-3, -3}, {3, -3}, {-3, 3}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}, {2, 1}, {-2, 1}, {2, -1}, {-2, -1}};
 
-bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
+bool Map::CheckIfCanContainsATree(int x, int y, int z, int height)
+{
     for (int i = 1; i <= height + 2; i++)
         if (y + i >= mapSize.y || (*_map)[x][y + i][z]->ID() != 0)
             return false;
 
-    for (int i = height + 2; i >= height + 1; i--) {
-        for (auto &d : d2) {
+    for (int i = height + 2; i >= height + 1; i--)
+    {
+        for (auto &d : d2)
+        {
             int nx = x + d.x;
             int nz = z + d.y;
             if (nx < 0 || nx >= mapSize.x || nz < 0 || nz >= mapSize.z)
@@ -470,8 +520,10 @@ bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
         }
     }
 
-    for (int i = height; i >= height - 1; i--) {
-        for (auto &d : d3) {
+    for (int i = height; i >= height - 1; i--)
+    {
+        for (auto &d : d3)
+        {
             int nx = x + d.x;
             int nz = z + d.y;
             if (nx < 0 || nx >= mapSize.x || nz < 0 || nz >= mapSize.z)
@@ -483,7 +535,8 @@ bool Map::CheckIfCanContainsATree(int x, int y, int z, int height) {
     return true;
 }
 
-void Map::GenerateATree(int x, int y, int z, int height, int type) {
+void Map::GenerateATree(int x, int y, int z, int height, int type)
+{
     (*_map)[x][y][z]->ID() = CB_DIRT_BLOCK;
     for (int i = 1; i <= height; i++)
         (*_map)[x][y + i][z]->ID() = CB_WOOD;
@@ -491,16 +544,20 @@ void Map::GenerateATree(int x, int y, int z, int height, int type) {
     auto leaveType = !type ? CB_LEAVES : CB_DIAMOND;
     (*_map)[x][y + height + 1][z]->ID() = leaveType;
     (*_map)[x][y + height + 2][z]->ID() = leaveType;
-    for (int i = height + 2; i >= height + 1; i--) {
-        for (auto &d : d2) {
+    for (int i = height + 2; i >= height + 1; i--)
+    {
+        for (auto &d : d2)
+        {
             int nx = x + d.x;
             int nz = z + d.y;
             (*_map)[nx][y + i][nz]->ID() = leaveType;
         }
     }
 
-    for (int i = height; i >= height - 1; i--) {
-        for (auto &d : d3) {
+    for (int i = height; i >= height - 1; i--)
+    {
+        for (auto &d : d3)
+        {
             int nx = x + d.x;
             int nz = z + d.y;
             (*_map)[nx][y + i][nz]->ID() = leaveType;
@@ -514,44 +571,44 @@ bool Map::LoadMapSlice(const std::string file, const int mapNum)
 
     if (IOManager::Read(file, mapIOStruct))
     {
-                // 获取在 map 中的位置，并填入 map 中
-                int start = std::stoi(file.substr(file.find_last_of("_") + 1, file.find_last_of(".") - file.find_last_of("_") - 1));
-                int sliceNum = _map->size() / mapNum;
-                int end = (start == mapNum - 1) ? _map->size() : (start + 1) * sliceNum;
-                int mapY = _map->at(0).size();
-                int mapZ = _map->at(0).at(0).size();
+        // 获取在 map 中的位置，并填入 map 中
+        int start = std::stoi(file.substr(file.find_last_of("_") + 1, file.find_last_of(".") - file.find_last_of("_") - 1));
+        int sliceNum = _map->size() / mapNum;
+        int end = (start == mapNum - 1) ? _map->size() : (start + 1) * sliceNum;
+        int mapY = _map->at(0).size();
+        int mapZ = _map->at(0).at(0).size();
 
-                for (int x = start * sliceNum; x < end; x++)
+        for (int x = start * sliceNum; x < end; x++)
+        {
+            for (int y = 0; y < mapY; y++)
+            {
+                for (int z = 0; z < mapZ; z++)
                 {
-                    for (int y = 0; y < mapY; y++)
+                    auto &mesh = _map->at(x).at(y).at(z);
+                    const auto &meshIOStruct = mapIOStruct.map[(x - start * sliceNum) * mapY * mapZ + y * mapZ + z];
+                    switch (meshIOStruct.type)
                     {
-                        for (int z = 0; z < mapZ; z++)
-                        {
-                            auto &mesh = _map->at(x).at(y).at(z);
-                            const auto &meshIOStruct = mapIOStruct.map[(x - start * sliceNum) * mapY * mapZ + y * mapZ + z];
-                            switch (meshIOStruct.type)
-                            {
-                            case MeshType::CubeType:
-                                mesh->ID() = meshIOStruct.id;
-                                break;
+                    case MeshType::CubeType:
+                        mesh->ID() = meshIOStruct.id;
+                        break;
 
-                            case MeshType::QuadType:
-                                mesh = make_shared<Quad>();
-                                mesh->ID() = meshIOStruct.id;
-                                break;
+                    case MeshType::QuadType:
+                        mesh = make_shared<Quad>();
+                        mesh->ID() = meshIOStruct.id;
+                        break;
 
-                            case MeshType::CrossQuadType:
-                                mesh = make_shared<CrossQuad>();
-                                mesh->ID() = meshIOStruct.id;
-                                break;
+                    case MeshType::CrossQuadType:
+                        mesh = make_shared<CrossQuad>();
+                        mesh->ID() = meshIOStruct.id;
+                        break;
 
-                            default:
-                                LOG_ERROR(logger, "Unknown mesh when loading the map in world map {}", file);
-                                return false;
-                            }
-                        }
+                    default:
+                        LOG_ERROR(logger, "Unknown mesh when loading the map in world map {}", file);
+                        return false;
                     }
                 }
+            }
+        }
     }
 
     return true;
