@@ -7,8 +7,11 @@
 #include "Mesh.hpp"
 #include "IO/IOStruct.hpp"
 #include "noise/noise.h"
+
 #include <future>
+#include <thread>
 #include <typeinfo>
+#include <chrono>
 
 class PerlinNoise2D {
   private:
@@ -75,6 +78,7 @@ class Map {
         return _map;
     }
     void SaveMap(const std::string &worldName, const std::string &saveRoot) const;
+    void LoadMap(const std::string &worldName, const std::string &saveRoot);
     static inline vec3 GetBlockCoords(const vec3 &pos) {
         auto thePos = pos + vec3(1.0f, 1.0f, -1.0f);
         thePos.z = -thePos.z;
@@ -103,6 +107,8 @@ class Map {
 
     bool CheckIfCanContainsATree(int x, int y, int z, int height);
     void GenerateATree(int x, int y, int z, int height, int type = 0);
+
+    bool LoadMapSlice(const std::string file, const int mapNum);
 };
 
 #endif

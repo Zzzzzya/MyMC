@@ -47,14 +47,63 @@ void Map::SaveMap(const std::string &worldName, const std::string &saveRoot) con
                                     // map 转换为 MapIOStruct
                                     MapIOStruct mapIOStruct{seed, mapSize, meshIOStructs};
 
-                                    // Serialize the mapIOStruct
-                                    auto serializedData = mapIOStruct.Serialize();
+                                    // 检查目录是否存在，若不则递归创建目录
+                                    std::string savePath = saveRoot + "/" + worldName;
+                                    if (!IOManager::DirExists(savePath))
+                                    {
+                                        while(IOManager::MakeDir(savePath)) std::this_thread::sleep_for(std::chrono::seconds(1));
+                                    }
 
-                                    // TODO: Save the mapIOStruct to the disk
+                                    // 写入文件
+                                    std::string saveFile = savePath + "/" + worldName + "_" + std::to_string(i) + ".map";
+                                    while(IOManager::Write(saveFile, mapIOStruct)) std::this_thread::sleep_for(std::chrono::seconds(1));
                                 });
     }
 
     // 等待所有线程结束
+    for (auto &future : futures)
+    {
+        future.wait();
+    }
+
+    LOG_INFO(logger, "The world {} has been saved!", worldName);
+}
+
+void Map::LoadMap(const std::string &worldName, const std::string &saveRoot) {
+    resizeMap();
+
+    std::string savePath = saveRoot + "/" + worldName;
+    // 检查目录是否存在
+    if (!IOManager::DirExists(savePath))
+    {
+        LOG_ERROR(logger, "The world {} does not exist!", worldName);
+        return;
+    }
+
+    // 读取文件
+    std::vector<std::string> files;
+    std::vector<std::string> mapFiles;
+    IOManager::GetFiles(savePath, files);
+    std::vector<std::future<bool>> futures;
+
+    for (const auto &file : files)
+    {
+        // 提取文件名后缀为 .map 的文件
+        if (file.substr(file.find_last_of(".") + 1) == "map")
+        {
+            mapFiles.emplace_back(file);
+        }
+    }
+
+    int mapNum = mapFiles.size();
+    for (const auto &mapFile : mapFiles)
+    {
+        futures.emplace_back(std::async(std::launch::async, [mapFile, mapNum, this]()
+        {
+            return this->LoadMapSlice(mapFile, mapNum);
+        }));
+    }
+
     for (auto &future : futures)
     {
         future.wait();
@@ -457,4 +506,53 @@ void Map::GenerateATree(int x, int y, int z, int height, int type) {
             (*_map)[nx][y + i][nz]->ID() = leaveType;
         }
     }
+}
+
+bool Map::LoadMapSlice(const std::string file, const int mapNum)
+{
+    MapIOStruct mapIOStruct;
+
+    if (IOManager::Read(file, mapIOStruct))
+    {
+                // 获取在 map 中的位置，并填入 map 中
+                int start = std::stoi(file.substr(file.find_last_of("_") + 1, file.find_last_of(".") - file.find_last_of("_") - 1));
+                int sliceNum = _map->size() / mapNum;
+                int end = (start == mapNum - 1) ? _map->size() : (start + 1) * sliceNum;
+                int mapY = _map->at(0).size();
+                int mapZ = _map->at(0).at(0).size();
+
+                for (int x = start * sliceNum; x < end; x++)
+                {
+                    for (int y = 0; y < mapY; y++)
+                    {
+                        for (int z = 0; z < mapZ; z++)
+                        {
+                            auto &mesh = _map->at(x).at(y).at(z);
+                            const auto &meshIOStruct = mapIOStruct.map[(x - start * sliceNum) * mapY * mapZ + y * mapZ + z];
+                            switch (meshIOStruct.type)
+                            {
+                            case MeshType::CubeType:
+                                mesh->ID() = meshIOStruct.id;
+                                break;
+
+                            case MeshType::QuadType:
+                                mesh = make_shared<Quad>();
+                                mesh->ID() = meshIOStruct.id;
+                                break;
+
+                            case MeshType::CrossQuadType:
+                                mesh = make_shared<CrossQuad>();
+                                mesh->ID() = meshIOStruct.id;
+                                break;
+
+                            default:
+                                LOG_ERROR(logger, "Unknown mesh when loading the map in world map {}", file);
+                                return false;
+                            }
+                        }
+                    }
+                }
+    }
+
+    return true;
 }
