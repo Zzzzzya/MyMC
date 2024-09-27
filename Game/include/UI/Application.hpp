@@ -8,32 +8,40 @@
 #include "imgui_impl_opengl3.h"
 
 class Scene;
-class App {
-  public:
-    enum class State {
-        INIT,
-        CREATING_NEW_GAME,
-        RUN,
-        SETTING,
-        WAITING,
-        PICTURE // 拍照模式
-    };
+class App
+{
+public:
+  enum class State
+  {
+    INIT,
+    CREATING_NEW_GAME,
+    RUN,
+    SETTING,
+    WAITING,
+    PICTURE // 拍照模式
+  };
 
-    State state = State::INIT;
+  State state = State::INIT;
 
-    Scene *scene = nullptr;
+  Scene *scene = nullptr;
 
-    App(Scene *scene);
-    void PrepareRender();
-    void ImGuiRender();
+  App(Scene *scene);
+  void PrepareRender();
+  void ImGuiRender();
 
-  private:
-    void Init(); // Start
-    void Setting();
-    void Run();
-    void Waiting();
-    void CreatingNewGame();
-    void Picture();
+private:
+  void Init(); // Start
+  void Setting();
+  void Run();
+  void Waiting();
+  void CreatingNewGame();
+  void Picture();
+  int GetSceneWidth();
+  int GetSceneHeight();
+  // begin window and change style of windows and buttons
+  ImVec2 BeginWindow(std::string title, int BtnCount, bool setting = false);
+  // end window
+  void EndWindow();
 };
 
 #endif

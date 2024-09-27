@@ -744,7 +744,6 @@ void Scene::ProcessKeyInput() {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             // 执行鼠标left键按下时的操作
             if (SelectedAnyBlock) {
-                std::cout << "yes" << std::endl;
                 auto &cube = (*(map->_map))[SelectedBlockToDo.x][SelectedBlockToDo.y][SelectedBlockToDo.z];
                 cube = make_shared<Cube>();
                 cube->ID() = CB_EMPTY;
