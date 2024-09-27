@@ -68,9 +68,8 @@ void App::Init()
         glfwSetInputMode(scene->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         scene->cursorInWindow = true;
     }
-    
+
     ImGui::Spacing();
-    // ImGui::SetCursorPosX(startX);
     if (ImGui::Button("Continue Game!", BtnSize))
     {
         // TODO：继续上一次游戏
@@ -81,7 +80,6 @@ void App::Init()
     }
 
     ImGui::Spacing();
-    // ImGui::SetCursorPosX(startX);
     if (ImGui::Button("Load Game!", BtnSize))
     {
         // TODO：加载某个游戏存档
@@ -247,9 +245,8 @@ ImVec2 App::BeginWindow(std::string title, int BtnCount, bool setting)
     // 创建一个窗口, 大小和windows窗口一致
     ImGui::SetNextWindowSize(ImVec2(GetSceneWidth(), GetSceneHeight()));
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::Begin(cstr, NULL, ImGuiWindowFlags_NoResize |            
-                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-                
+    ImGui::Begin(cstr, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
     ImGui::Text("FPS: %.1f", scene->fps);
 
     // 设置无边框
@@ -265,15 +262,13 @@ ImVec2 App::BeginWindow(std::string title, int BtnCount, bool setting)
     float startX = (GetSceneWidth() - ButtonWidth) * 0.5f;
 
     // 设置样式
-    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle &style = ImGui::GetStyle();
     style.ItemSpacing = ImVec2(0, SpaceBetweenButtons);
-    style.FrameRounding = 10.0f;  // buttons 圆角
-    
-   
-   
-    if(!setting)
+    style.FrameRounding = 10.0f; // buttons 圆角
+
+    if (!setting)
     {
-         // 设置字体大小
+        // 设置字体大小
         ImGui::SetWindowFontScale(2.f);
 
         ImGui::SetCursorPosX(startX);
@@ -286,7 +281,6 @@ ImVec2 App::BeginWindow(std::string title, int BtnCount, bool setting)
         ImGui::SetCursorPosX(180.f);
         ImGui::SetCursorPosY(100.f);
     }
-    
 
     ImGui::BeginGroup();
 
