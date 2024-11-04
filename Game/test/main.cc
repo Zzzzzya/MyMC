@@ -11,19 +11,32 @@ void ProcessCursorPos(GLFWwindow *window, double xpos, double ypos);
 void ProcessScroll(GLFWwindow *window, double xoffset, double yoffset);
 
 void StartNetworking() {
-    boost::asio::io_context io_context;
+    try {
+        boost::asio::io_context io_context;
 
-    // 这里可以添加服务器或客户端的初始化代码
-    // 例如，创建一个TCP连接
-    boost::asio::ip::tcp::resolver resolver(io_context);
-    boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("localhost", "daytime");
+        // 解析服务器地址和端口
+        boost::asio::ip::tcp::resolver resolver(io_context);
+        boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("localhost", "12345");
 
-    boost::asio::ip::tcp::socket socket(io_context);
-    boost::asio::connect(socket, endpoints);
+        // 创建并连接套接字
+        boost::asio::ip::tcp::socket socket(io_context);
+        boost::asio::connect(socket, endpoints);
 
-    // 这里可以添加数据发送和接收的代码
+        // 发送数据
+        std::string request = "Hello from client!";
+        boost::asio::write(socket, boost::asio::buffer(request));
+
+        // 接收数据
+        char reply[1024];
+        size_t reply_length = boost::asio::read(socket, boost::asio::buffer(reply, request.size()));
+        std::cout << "Reply from server: ";
+        std::cout.write(reply, reply_length);
+        std::cout << std::endl;
+    }
+    catch (std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
 }
-
 int main(int argc, char **argv) {
     Loggers::init();
 
