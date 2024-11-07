@@ -239,58 +239,58 @@ int App::GetSceneHeight()
     return scene->imageHeight;
 }
 
-ImVec2 App::BeginWindow(std::string title, int BtnCount, bool setting)
-{
-    const char *cstr = title.c_str();
-    // 创建一个窗口, 大小和windows窗口一致
-    ImGui::SetNextWindowSize(ImVec2(GetSceneWidth(), GetSceneHeight()));
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::Begin(cstr, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+// ImVec2 App::BeginWindow(std::string title, int BtnCount, bool setting)
+// {
+//     const char *cstr = title.c_str();
+//     // 创建一个窗口, 大小和windows窗口一致
+//     ImGui::SetNextWindowSize(ImVec2(GetSceneWidth(), GetSceneHeight()));
+//     ImGui::SetNextWindowPos(ImVec2(0, 0));
+//     ImGui::Begin(cstr, NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Text("FPS: %.1f", scene->fps);
+//     ImGui::Text("FPS: %.1f", scene->fps);
 
-    // 设置无边框
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+//     // 设置无边框
+//     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 
-    // 设置buttons样式
-    float ButtonWidth = 500.f;
-    float ButtonHeight = 50.f;
-    // 设置button之间的间距
-    float SpaceBetweenButtons = 30.f;
-    float TotalBtnHeight = (ButtonHeight + SpaceBetweenButtons) * BtnCount;
-    float startY = (GetSceneHeight() - TotalBtnHeight) / 2.f;
-    float startX = (GetSceneWidth() - ButtonWidth) * 0.5f;
+//     // 设置buttons样式
+//     float ButtonWidth = 500.f;
+//     float ButtonHeight = 50.f;
+//     // 设置button之间的间距
+//     float SpaceBetweenButtons = 30.f;
+//     float TotalBtnHeight = (ButtonHeight + SpaceBetweenButtons) * BtnCount;
+//     float startY = (GetSceneHeight() - TotalBtnHeight) / 2.f;
+//     float startX = (GetSceneWidth() - ButtonWidth) * 0.5f;
 
-    // 设置样式
-    ImGuiStyle &style = ImGui::GetStyle();
-    style.ItemSpacing = ImVec2(0, SpaceBetweenButtons);
-    style.FrameRounding = 10.0f; // buttons 圆角
+//     // 设置样式
+//     ImGuiStyle &style = ImGui::GetStyle();
+//     style.ItemSpacing = ImVec2(0, SpaceBetweenButtons);
+//     style.FrameRounding = 10.0f; // buttons 圆角
 
-    if (!setting)
-    {
-        // 设置字体大小
-        ImGui::SetWindowFontScale(2.f);
+//     if (!setting)
+//     {
+//         // 设置字体大小
+//         ImGui::SetWindowFontScale(2.f);
 
-        ImGui::SetCursorPosX(startX);
-        ImGui::SetCursorPosY(startY);
-    }
-    else
-    {
-        ImGui::SetWindowFontScale(1.5f);
+//         ImGui::SetCursorPosX(startX);
+//         ImGui::SetCursorPosY(startY);
+//     }
+//     else
+//     {
+//         ImGui::SetWindowFontScale(1.5f);
 
-        ImGui::SetCursorPosX(180.f);
-        ImGui::SetCursorPosY(100.f);
-    }
+//         ImGui::SetCursorPosX(180.f);
+//         ImGui::SetCursorPosY(100.f);
+//     }
 
-    ImGui::BeginGroup();
+//     ImGui::BeginGroup();
 
-    return ImVec2(ButtonWidth, ButtonHeight);
-}
+//     return ImVec2(ButtonWidth, ButtonHeight);
+// }
 
-void App::EndWindow()
-{
-    ImGui::EndGroup();
-    ImGui::PopStyleVar();
-    ImGui::SetWindowFontScale(1.f);
-    ImGui::End();
-}
+// void App::EndWindow()
+// {
+//     ImGui::EndGroup();
+//     ImGui::PopStyleVar();
+//     ImGui::SetWindowFontScale(1.f);
+//     ImGui::End();
+// }
