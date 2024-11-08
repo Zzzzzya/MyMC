@@ -1,7 +1,6 @@
 #include "BackgroundMusic.h"
 #include <iostream>
 
-
 #ifndef BACKGROUNDMUSIC_H
 #define BACKGROUNDMUSIC_H
 
@@ -11,7 +10,7 @@
 class BackgroundMusic {
 public:
     BackgroundMusic(const std::string& filePath);
-    ~BackgroundMusic();
+    ~BackgroundMusic() = default; // 使用默认析构函数
 
     void play();
     void pause();
@@ -30,15 +29,10 @@ private:
 
 #endif // BACKGROUNDMUSIC_H
 
-
 BackgroundMusic::BackgroundMusic(const std::string& filePath) : filePath(filePath) {
     if (!music.openFromFile(filePath)) {
         handleError("Failed to load music file: " + filePath);
     }
-}
-
-BackgroundMusic::~BackgroundMusic() {
-    // Destructor
 }
 
 void BackgroundMusic::play() {
@@ -85,5 +79,4 @@ bool BackgroundMusic::isStopped() const {
 
 void BackgroundMusic::handleError(const std::string& errorMessage) const {
     std::cerr << "Error: " << errorMessage << std::endl;
-    // You can add more error handling logic here, such as logging to a file
 }
