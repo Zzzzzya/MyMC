@@ -25,7 +25,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include/Render)
 include_directories(${PROJECT_SOURCE_DIR}/include/Map)
 include_directories(${PROJECT_SOURCE_DIR}/include/Physics)
 include_directories(${PROJECT_SOURCE_DIR}/include/Culling)
-include_directories(${PROJECT_SOURCE_DIR}/include/Music)
 
 file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB_RECURSE TEST_FILES ${PROJECT_SOURCE_DIR}/test/main.cc)
